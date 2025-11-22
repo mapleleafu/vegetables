@@ -1,0 +1,211 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum TestMode {
+  CATEGORY
+  QUICK_NORMAL
+  QUICK_HARD
+}
+
+enum CoinReason {
+  WORD_CORRECT
+  CATEGORY_UNLOCK
+  ADMIN_ADJUST
+  QUICK_TEST
+}
+
+model User {
+  id             String   @id @default(cuid())
+  username       String   @unique
+  passwordHash   String
+  coins          Int      @default(0)
+  role           UserRole @default(USER)
+  targetLanguage String   @default("tr")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  notes            Note[]
+  focusWords       FocusWord[]
+  favorites        FavoriteWord[]
+  wordProgress     WordProgress[]
+  categoryProgress CategoryProgress[]
+  testSessions     TestSession[]
+  coinTransactions CoinTransaction[]
+}
+
+model Category {
+  id              String  @id @default(cuid())
+  name            String
+  slug            String  @unique
+  description     String?
+  imageUrl        String?
+  colorHex        String?
+  costCoins       Int     @default(0)
+  maxCoinsPerUser Int     @default(0)
+
+  parentId String?
+  parent   Category?  @relation("CategoryToSubcategories", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryToSubcategories")
+
+  words            Word[]
+  categoryProgress CategoryProgress[]
+
+  testSessions TestSession[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Word {
+  id              String   @id @default(cuid())
+  category        Category @relation(fields: [categoryId], references: [id])
+  categoryId      String
+  slug            String
+  imageUrl        String?
+  isActive        Boolean  @default(true)
+  maxCoinsPerUser Int      @default(1)
+  coinValue       Int      @default(1)
+
+  translations WordTranslation[]
+  wordProgress WordProgress[]
+  focusWords   FocusWord[]
+  favorites    FavoriteWord[]
+  testAnswers  TestAnswer[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([categoryId, slug])
+}
+
+model WordTranslation {
+  id           String  @id @default(cuid())
+  word         Word    @relation(fields: [wordId], references: [id])
+  wordId       String
+  languageCode String
+  text         String
+  audioUrl     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([wordId, languageCode])
+}
+
+model Note {
+  id     String @id @default(cuid())
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+  body   String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model FocusWord {
+  id     String @id @default(cuid())
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+  word   Word   @relation(fields: [wordId], references: [id])
+  wordId String
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, wordId])
+}
+
+model FavoriteWord {
+  id     String @id @default(cuid())
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+  word   Word   @relation(fields: [wordId], references: [id])
+  wordId String
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, wordId])
+}
+
+model WordProgress {
+  id             String    @id @default(cuid())
+  user           User      @relation(fields: [userId], references: [id])
+  userId         String
+  word           Word      @relation(fields: [wordId], references: [id])
+  wordId         String
+  timesSeen      Int       @default(0)
+  timesCorrect   Int       @default(0)
+  timesIncorrect Int       @default(0)
+  mastered       Boolean   @default(false)
+  coinsEarned    Int       @default(0)
+  lastTestedAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, wordId])
+}
+
+model CategoryProgress {
+  id          String   @id @default(cuid())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  category    Category @relation(fields: [categoryId], references: [id])
+  categoryId  String
+  isUnlocked  Boolean  @default(false)
+  coinsEarned Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, categoryId])
+}
+
+model TestSession {
+  id         String    @id @default(cuid())
+  user       User      @relation(fields: [userId], references: [id])
+  userId     String
+  mode       TestMode
+  category   Category? @relation(fields: [categoryId], references: [id])
+  categoryId String?
+
+  totalQuestions Int       @default(0)
+  totalCorrect   Int       @default(0)
+  totalIncorrect Int       @default(0)
+  startedAt      DateTime  @default(now())
+  completedAt    DateTime?
+
+  testAnswers TestAnswer[]
+}
+
+model TestAnswer {
+  id         String      @id @default(cuid())
+  session    TestSession @relation(fields: [sessionId], references: [id])
+  sessionId  String
+  word       Word        @relation(fields: [wordId], references: [id])
+  wordId     String
+  isCorrect  Boolean
+  orderIndex Int
+
+  createdAt DateTime @default(now())
+}
+
+model CoinTransaction {
+  id     String     @id @default(cuid())
+  user   User       @relation(fields: [userId], references: [id])
+  userId String
+  amount Int
+  reason CoinReason
+  meta   Json?
+
+  createdAt DateTime @default(now())
+}

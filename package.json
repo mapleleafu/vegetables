@@ -1,0 +1,41 @@
+{
+  "name": "vegs",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^5.2.2",
+    "@prisma/adapter-pg": "^7.0.0",
+    "@prisma/client": "^7.0.0",
+    "@supabase/supabase-js": "^2.84.0",
+    "@tanstack/react-query": "^5.90.10",
+    "bcryptjs": "^3.0.3",
+    "framer-motion": "^12.23.24",
+    "howler": "^2.2.4",
+    "next": "16.0.3",
+    "next-auth": "^4.24.13",
+    "pg": "^8.16.3",
+    "prisma": "^7.0.0",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "react-hook-form": "^7.66.1",
+    "zod": "^4.1.12",
+    "zustand": "^5.0.8"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/pg": "^8.15.6",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.0.3",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
