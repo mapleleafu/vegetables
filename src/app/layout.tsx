@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 import { Providers } from "@/components/Providers";
 
 export const metadata: Metadata = {
-  title: "Language Trainer",
-  description: "Vocabulary practice for my wife",
+  title: "Gabs ❤️ Atakan",
+  description: "Language training for my wife",
 };
 
 export default function RootLayout(props: { children: React.ReactNode }) {

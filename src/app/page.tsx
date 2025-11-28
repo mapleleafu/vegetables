@@ -3,7 +3,7 @@ import { signOut } from "next-auth/react";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import { LogoutButton } from "@/components/LogoutButton";
+import MenuActions from "@/components/MenuActions";
 
 export default async function HomePage() {
   const session = await getServerSession(authOptions);
@@ -34,22 +34,7 @@ export default async function HomePage() {
         </div>
       </header>
 
-      {!session && (
-        <div className="flex gap-3">
-          <Link href="/login" className="flex-1 rounded border border-neutral-700 py-2 text-center">
-            Login
-          </Link>
-          <Link href="/register" className="flex-1 rounded border border-neutral-700 py-2 text-center">
-            Register
-          </Link>
-        </div>
-      )}
-
-      {session && (
-        <div className="flex gap-3">
-          <LogoutButton />
-        </div>
-      )}
+      <MenuActions />
 
       <section className="mt-4 space-y-2">
         {categories.map(c => (
