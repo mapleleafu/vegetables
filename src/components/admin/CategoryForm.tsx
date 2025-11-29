@@ -1,6 +1,8 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { api } from "@/lib/api";
+import { toast } from "sonner";
 
 export function CategoryForm() {
   const [name, setName] = useState("");
@@ -26,30 +28,24 @@ export function CategoryForm() {
 
     const finalSlug = slug || autoSlug(name);
 
-    const res = await fetch("/api/categories", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    try {
+      await api.categories.create({
         name,
         slug: finalSlug,
         costCoins,
         maxCoinsPerUser,
-      }),
-    });
+      });
 
-    setLoading(false);
-
-    if (!res.ok) {
-      const json = await res.json().catch(() => null);
-      setError(json && json.error ? json.error : "Failed to create category");
-      return;
+      toast.success("Category created");
+      setName("");
+      setSlug("");
+      setCostCoins(0);
+      setMaxCoinsPerUser(0);
+    } catch (err: any) {
+      setError(err.message || "Failed to create category");
+    } finally {
+      setLoading(false);
     }
-
-    setSuccess("Category created");
-    setName("");
-    setSlug("");
-    setCostCoins(0);
-    setMaxCoinsPerUser(0);
   }
 
   return (
