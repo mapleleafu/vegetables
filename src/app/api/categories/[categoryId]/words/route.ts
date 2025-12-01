@@ -1,16 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { apiHandler } from "@/lib/api-handler";
 
-interface Params {
-  params: { categoryId: string };
-}
-
-export async function GET(_request: Request, { params }: Params) {
-  const session = await getServerSession(authOptions);
-  const userId = session && session.user ? ((session.user as any).id as string) : null;
-
+export const GET = apiHandler(async (req, { params }, user) => {
+  const userId = user.id;
   const categoryId = params.categoryId;
 
   const words = await prisma.word.findMany({
@@ -46,4 +39,4 @@ export async function GET(_request: Request, { params }: Params) {
   });
 
   return NextResponse.json(data);
-}
+});

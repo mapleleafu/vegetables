@@ -47,8 +47,6 @@ model Category {
   id              String  @id @default(cuid())
   name            String
   slug            String  @unique
-  description     String?
-  imageUrl        String?
   colorHex        String?
   costCoins       Int     @default(0)
   maxCoinsPerUser Int     @default(0)
@@ -67,14 +65,15 @@ model Category {
 }
 
 model Word {
-  id              String   @id @default(cuid())
-  category        Category @relation(fields: [categoryId], references: [id])
+  id              String    @id @default(cuid())
+  category        Category? @relation(fields: [categoryId], references: [id])
   categoryId      String
-  slug            String
+  name            String    @unique
+  slug            String    @unique
   imageUrl        String?
-  isActive        Boolean  @default(true)
-  maxCoinsPerUser Int      @default(1)
-  coinValue       Int      @default(1)
+  isActive        Boolean   @default(true)
+  maxCoinsPerUser Int       @default(1)
+  coinValue       Int       @default(1)
 
   translations WordTranslation[]
   wordProgress WordProgress[]
