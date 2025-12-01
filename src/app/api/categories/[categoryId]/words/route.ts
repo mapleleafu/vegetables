@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { apiHandler } from "@/lib/api-handler";
+import { apiHandler } from "@/lib/apiHandler";
 
 export const GET = apiHandler(async (req, { params }, user) => {
   const userId = user.id;

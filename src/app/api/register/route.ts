@@ -1,36 +1,37 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hash } from "bcryptjs";
+import { apiHandler } from "@/lib/apiHandler";
+import { registerSchema } from "@/lib/validations/auth";
+import { BadRequestError } from "@/lib/errors";
 
-export async function POST(request: Request) {
-  const body = await request.json();
-  const username = body.username;
-  const password = body.password;
+export const POST = apiHandler(
+  async (req, { params }, user) => {
+    const body = await req.json();
+    const data = registerSchema.parse(body);
 
-  if (!username || !password) {
-    return NextResponse.json({ error: "Missing fields" }, { status: 400 });
-  }
+    const existing = await prisma.user.findUnique({
+      where: { username: data.username },
+    });
 
-  const existing = await prisma.user.findUnique({
-    where: { username },
-  });
+    if (existing) {
+      throw new BadRequestError("Username already in use");
+    }
 
-  if (existing) {
-    return NextResponse.json({ error: "Username already in use" }, { status: 400 });
-  }
+    const passwordHash = await hash(data.password, 10);
 
-  const passwordHash = await hash(password, 10);
+    const newUser = await prisma.user.create({
+      data: {
+        username: data.username,
+        passwordHash,
+      },
+      select: {
+        id: true,
+        username: true,
+      },
+    });
 
-  const user = await prisma.user.create({
-    data: {
-      username,
-      passwordHash,
-    },
-    select: {
-      id: true,
-      username: true,
-    },
-  });
-
-  return NextResponse.json({ user });
-}
+    return NextResponse.json({ user: newUser });
+  },
+  { isPublic: true }
+);

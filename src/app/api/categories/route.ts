@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { apiHandler } from "@/lib/api-handler";
+import { apiHandler } from "@/lib/apiHandler";
 import { BadRequestError } from "@/lib/errors";
+import { createCategorySchema } from "@/lib/validations/categories";
 
 export const GET = apiHandler(async (req, { params }, user) => {
   const userId = user.id;
@@ -14,7 +15,6 @@ export const GET = apiHandler(async (req, { params }, user) => {
   }
 
   const categories = await prisma.category.findMany(query);
-
   const data = categories.map((c: any) => ({
     id: c.id,
     name: c.name,
@@ -28,19 +28,10 @@ export const GET = apiHandler(async (req, { params }, user) => {
 export const POST = apiHandler(
   async (req, { params }, user) => {
     const body = await req.json();
-
-    if (!body.name || !body.slug) {
-      throw new BadRequestError("Name and Slug are required");
-    }
+    const validatedData = createCategorySchema.parse(body);
 
     const category = await prisma.category.create({
-      data: {
-        name: body.name,
-        slug: body.slug,
-        parentId: body.parentId || null,
-        costCoins: body.costCoins || 0,
-        maxCoinsPerUser: body.maxCoinsPerUser || 0,
-      },
+      data: validatedData,
     });
 
     return NextResponse.json(category);

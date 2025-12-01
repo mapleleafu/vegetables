@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { ApiError, ForbiddenError, UnauthorizedError } from "@/lib/errors";
 import { Prisma } from "@prisma/client";
+import { ZodError } from "zod";
 
 type UserRole = "USER" | "ADMIN";
 
@@ -41,6 +42,10 @@ export function apiHandler(handler: AuthorizedHandler | PublicHandler, options: 
       return await (handler as PublicHandler)(req, context);
     } catch (error: any) {
       console.error("API Error:", error);
+
+      if (error instanceof ZodError) {
+        return NextResponse.json({ error: error.issues[0].message }, { status: 400 });
+      }
 
       if (error instanceof ApiError) {
         return NextResponse.json({ error: error.message }, { status: error.statusCode });
