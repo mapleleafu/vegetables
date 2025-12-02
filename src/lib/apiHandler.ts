@@ -41,8 +41,6 @@ export function apiHandler(handler: AuthorizedHandler | PublicHandler, options: 
 
       return await (handler as PublicHandler)(req, context);
     } catch (error: any) {
-      console.error("API Error:", error);
-
       if (error instanceof ZodError) {
         return NextResponse.json({ error: error.issues[0].message }, { status: 400 });
       }

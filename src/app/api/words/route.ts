@@ -10,7 +10,7 @@ export const POST = apiHandler(
 
     const word = await prisma.word.create({
       data: {
-        categoryId: data.categoryId,
+        categoryId: data.categoryId || null,
         name: data.name,
         slug: data.slug,
         imageUrl: data.imageUrl || null,

@@ -1,21 +1,30 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, useEffect } from "react";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { Category } from "@prisma/client";
+import { Switch } from "@/components/ui/switch";
 
-interface WordsFormProps {
-  categories?: Category[];
-}
-
-export function WordsForm({ categories = [] }: WordsFormProps) {
+export function WordsForm() {
   const [categoryId, setCategoryId] = useState("");
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [coinValue, setCoinValue] = useState(1);
   const [maxCoinsPerUser, setMaxCoinsPerUser] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [imageUrl, setImageUrl] = useState("");
+  const [isActive, setIsActive] = useState(true);
+
+  useEffect(() => {
+    api.categories
+      .getAll()
+      .then(setCategories)
+      .catch(err => {
+        toast.error(err?.message || "Failed to load categories");
+      });
+  }, []);
 
   function autoSlug(value: string) {
     return value
@@ -31,14 +40,14 @@ export function WordsForm({ categories = [] }: WordsFormProps) {
     const finalSlug = slug || autoSlug(name);
 
     try {
-      if (!categoryId) throw new Error("Please select a category");
-
       await api.words.create({
         categoryId,
         name,
         slug: finalSlug,
         coinValue,
         maxCoinsPerUser,
+        isActive,
+        imageUrl: imageUrl || null,
       });
 
       toast.success("Word created");
@@ -89,6 +98,16 @@ export function WordsForm({ categories = [] }: WordsFormProps) {
         />
       </div>
 
+      <div className="space-y-1">
+        <label className="text-xs">Upload Image / URL</label>
+        <input
+          className="w-full rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm"
+          value={imageUrl}
+          onChange={e => setImageUrl(e.target.value)}
+          placeholder="https://example.com/image.png"
+        />
+      </div>
+
       <div className="grid grid-cols-2 gap-2">
         <div className="space-y-1">
           <label className="text-xs">Coin Value</label>
@@ -108,6 +127,13 @@ export function WordsForm({ categories = [] }: WordsFormProps) {
             value={maxCoinsPerUser}
             onChange={e => setMaxCoinsPerUser(Number(e.target.value))}
           />
+        </div>
+      </div>
+
+      <div className="space-y-1">
+        <div className="flex items-center gap-2">
+          <Switch checked={isActive} onCheckedChange={setIsActive} className="data-[state=checked]:bg-green-500" />
+          <label className="text-xs">Is Active</label>
         </div>
       </div>
 

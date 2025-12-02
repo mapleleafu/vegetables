@@ -39,22 +39,14 @@ export default async function AdminWordsPage() {
         {words.length === 0 && <p className="text-sm text-neutral-400">No words yet.</p>}
         {words.map(c => (
           <div key={c.id} className="rounded-xl border border-neutral-700 px-4 py-3 flex justify-between items-center">
-            <div>
-              <div className="text-sm font-medium">{c.name}</div>
-              <div className="text-xs text-neutral-400">{c.imageUrl}</div>
-              <div className="text-xs text-neutral-400">{c.isActive}</div>
-              <div className="text-xs text-neutral-400">{c.coinValue}</div>
-              <div className="text-xs text-neutral-400">{c.maxCoinsPerUser}</div>
-              <div className="text-xs text-neutral-400">{c.slug}</div>
-            </div>
             <div className="text-xs text-neutral-300 text-right">
-              <div>Name: {c.name}</div>
+              <div>{c.name}</div>
             </div>
           </div>
         ))}
       </section>
 
-      <WordsForm categories={await prisma.category.findMany()} />
+      <WordsForm />
     </main>
   );
 }

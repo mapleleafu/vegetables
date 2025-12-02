@@ -27,6 +27,8 @@ enum CoinReason {
 model User {
   id             String   @id @default(cuid())
   username       String   @unique
+  email          String?
+  emailVerified  Boolean  @default(false)
   passwordHash   String
   coins          Int      @default(0)
   role           UserRole @default(USER)
@@ -67,7 +69,7 @@ model Category {
 model Word {
   id              String    @id @default(cuid())
   category        Category? @relation(fields: [categoryId], references: [id])
-  categoryId      String
+  categoryId      String?
   name            String    @unique
   slug            String    @unique
   imageUrl        String?

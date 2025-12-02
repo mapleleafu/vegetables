@@ -15,7 +15,7 @@ function getClient() {
 
   return new PrismaClient({
     adapter,
-    log: ["query", "error", "warn"],
+    log: ["error", "warn"],
   });
 }
 
