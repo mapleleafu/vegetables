@@ -22,6 +22,12 @@ export default async function HomePage() {
 
   const categories = await prisma.category.findMany({
     orderBy: { name: "asc" },
+    select: {
+      id: true,
+      name: true,
+      costCoins: true,
+      slug: true,
+    },
   });
 
   return (
@@ -38,7 +44,7 @@ export default async function HomePage() {
 
       <section className="mt-4 space-y-2">
         {categories.map(c => (
-          <Link key={c.id} href={`/categories/${c.id}`} className="block rounded-xl border border-green-700 bg-green-900/40 px-4 py-3">
+          <Link key={c.slug} href={`/categories/${c.slug}`} className="block rounded-xl border border-green-700 bg-green-900/40 px-4 py-3">
             <div className="flex justify-between items-center">
               <span>{c.name}</span>
               <span className="text-xs text-neutral-300">Cost: {c.costCoins}</span>

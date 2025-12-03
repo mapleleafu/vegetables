@@ -8,12 +8,16 @@ import { ZodError } from "zod";
 type UserRole = "USER" | "ADMIN";
 
 type RouteHandlerContext = {
+  params: Promise<Record<string, string>>;
+};
+
+type ResolvedContext = {
   params: Record<string, string>;
 };
 
-type AuthorizedHandler = (req: Request, context: RouteHandlerContext, user: { id: string; role: UserRole }) => Promise<NextResponse | any>;
+type AuthorizedHandler = (req: Request, context: ResolvedContext, user: { id: string; role: UserRole }) => Promise<NextResponse | any>;
 
-type PublicHandler = (req: Request, context: RouteHandlerContext) => Promise<NextResponse | any>;
+type PublicHandler = (req: Request, context: ResolvedContext) => Promise<NextResponse | any>;
 
 interface Options {
   requiredRole?: UserRole;
@@ -23,6 +27,9 @@ interface Options {
 export function apiHandler(handler: AuthorizedHandler | PublicHandler, options: Options = {}) {
   return async (req: Request, context: RouteHandlerContext) => {
     try {
+      const resolvedParams = await context.params;
+      const cleanContext: ResolvedContext = { params: resolvedParams };
+
       if (!options.isPublic) {
         const session = await getServerSession(authOptions);
 
@@ -36,10 +43,10 @@ export function apiHandler(handler: AuthorizedHandler | PublicHandler, options: 
           throw new ForbiddenError("Insufficient permissions");
         }
 
-        return await (handler as AuthorizedHandler)(req, context, user);
+        return await (handler as AuthorizedHandler)(req, cleanContext, user);
       }
 
-      return await (handler as PublicHandler)(req, context);
+      return await (handler as PublicHandler)(req, cleanContext);
     } catch (error: any) {
       if (error instanceof ZodError) {
         return NextResponse.json({ error: error.issues[0].message }, { status: 400 });
@@ -55,6 +62,7 @@ export function apiHandler(handler: AuthorizedHandler | PublicHandler, options: 
         }
       }
 
+      console.error(error);
       return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
   };
