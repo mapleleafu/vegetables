@@ -36,13 +36,18 @@ export default async function CategoryPage({ params }: Props) {
         {words.length === 0 ? (
           <p className="text-center text-sm text-neutral-400">No words found in this category.</p>
         ) : (
-          <ul className="space-y-2">
+          <ul className="grid grid-cols-4 gap-2">
             {words.map(word => (
               <li key={word.id} className="p-3 rounded-lg border border-neutral-800">
-                <h2 className="font-medium text-center">{word.name}</h2>
                 {word.imageUrl && (
                   <div className="flex justify-center mt-2">
-                    <Image src={word.imageUrl} alt={word.name} width={200} height={200} className="rounded-md object-cover" />
+                    <Image
+                      src={word.imageUrl}
+                      alt={word.name}
+                      width={200}
+                      height={200}
+                      className="rounded-md object-cover select-none cursor-pointer hover:scale-140 transition-transform duration-100"
+                    />
                   </div>
                 )}
               </li>

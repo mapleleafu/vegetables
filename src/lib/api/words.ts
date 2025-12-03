@@ -17,4 +17,15 @@ export const wordsApi = {
       method: "POST",
       body: JSON.stringify(data),
     }),
+
+  update: (id: string, data: CreateWordInput) =>
+    sendRequest<Word>(`/api/words/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
+
+  delete: (id: string) =>
+    sendRequest(`/api/words/${id}`, {
+      method: "DELETE",
+    }),
 };
