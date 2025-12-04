@@ -9,6 +9,7 @@ import { PaginationWithLinks } from "@/components/ui/paginationWithLinks";
 import Image from "next/image";
 import { Image as ImageIcon } from "lucide-react";
 import { Prisma } from "@prisma/client";
+import { MenuButton } from "@/components/MenuButton";
 
 export default async function AdminWordsPage({ searchParams }: { searchParams: Promise<{ page?: string; query?: string }> }) {
   const session = await getServerSession(authOptions);
@@ -52,9 +53,7 @@ export default async function AdminWordsPage({ searchParams }: { searchParams: P
     <main className="min-h-screen p-4 max-w-md mx-auto space-y-6">
       <header className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Admin · Words</h1>
-        <Link href="/admin" className="text-sm underline">
-          Back
-        </Link>
+        <MenuButton />
       </header>
 
       <section className="space-y-4">

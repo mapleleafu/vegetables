@@ -2,18 +2,18 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { Providers } from "@/components/Providers";
 import { Toaster } from "@/components/ui/sonner";
+import { Inter } from "next/font/google";
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Gabs ❤️ Atakan",
   description: "Language training for my wife",
 };
 
-export default function RootLayout(props: { children: React.ReactNode }) {
-  const children = props.children;
-
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className="bg-neutral-900 text-neutral-100">
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.className} bg-background text-foreground antialiased`}>
         <Providers>
           {children}
           <Toaster />
