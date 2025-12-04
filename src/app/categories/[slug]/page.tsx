@@ -46,7 +46,7 @@ export default async function CategoryPage({ params }: Props) {
                       alt={word.name}
                       width={200}
                       height={200}
-                      className="rounded-md object-cover select-none cursor-pointer hover:scale-140 transition-transform duration-100"
+                      className="rounded-md object-cover select-none cursor-pointer hover:scale-125 transition-transform duration-100"
                     />
                   </div>
                 )}
