@@ -9,6 +9,11 @@ type CreateWordInput = {
   maxCoinsPerUser: number;
   isActive: boolean;
   imageUrl?: string | null;
+  translations: {
+    languageCode: string;
+    text: string;
+    audioUrl?: string | null;
+  }[];
 };
 
 export const wordsApi = {

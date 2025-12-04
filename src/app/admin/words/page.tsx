@@ -11,6 +11,8 @@ import { PaginationWithLinks } from "@/components/ui/paginationWithLinks";
 import { Button } from "@/components/ui/button";
 import { WordDialog } from "@/components/admin/WordDialog";
 
+//TODO: cache or do pagination for categories so we don't load all for both editing and creating new words
+
 export default async function AdminWordsPage({
   searchParams,
 }: {

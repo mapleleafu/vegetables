@@ -1,17 +1,65 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { Category } from "@prisma/client";
+import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Card, CardContent } from "@/components/ui/card";
+import { createCategorySchema } from "@/lib/validations/categories";
 
-export function CategoryForm() {
-  const [name, setName] = useState("");
-  const [slug, setSlug] = useState("");
-  const [costCoins, setCostCoins] = useState(0);
-  const [maxCoinsPerUser, setMaxCoinsPerUser] = useState(0);
+type FormValues = z.infer<typeof createCategorySchema>;
+
+interface CategoryFormProps {
+  initialData?: Category | null;
+  onSuccess?: () => void;
+}
+
+export function CategoryForm({ initialData, onSuccess }: CategoryFormProps) {
+  const isEditing = !!initialData;
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+
+  const form = useForm({
+    resolver: zodResolver(createCategorySchema),
+    defaultValues: {
+      name: initialData?.name || "",
+      slug: initialData?.slug || "",
+      costCoins: initialData?.costCoins ?? 0,
+      maxCoinsPerUser: initialData?.maxCoinsPerUser ?? 0,
+    },
+  });
+
+  useEffect(() => {
+    if (initialData) {
+      form.reset({
+        name: initialData.name,
+        slug: initialData.slug,
+        costCoins: initialData.costCoins,
+        maxCoinsPerUser: initialData.maxCoinsPerUser,
+      });
+    } else {
+      form.reset({
+        name: "",
+        slug: "",
+        costCoins: 0,
+        maxCoinsPerUser: 0,
+      });
+    }
+  }, [initialData, form]);
 
   function autoSlug(value: string) {
     return value
@@ -20,82 +68,136 @@ export function CategoryForm() {
       .replace(/(^-|-$)/g, "");
   }
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    setError("");
-    setSuccess("");
+  async function onSubmit(values: FormValues) {
     setLoading(true);
-
-    const finalSlug = slug || autoSlug(name);
+    const finalSlug = values.slug || autoSlug(values.name);
 
     try {
-      await api.categories.create({
-        name,
+      const payload = {
+        ...values,
         slug: finalSlug,
-        costCoins,
-        maxCoinsPerUser,
-      });
+      };
 
-      toast.success("Category created");
-      setName("");
-      setSlug("");
-      setCostCoins(0);
-      setMaxCoinsPerUser(0);
+      if (isEditing && initialData) {
+        await api.categories.update(initialData.id, payload);
+        toast.success("Category updated successfully");
+      } else {
+        await api.categories.create(payload);
+        toast.success("Category created successfully");
+        form.reset();
+      }
+
+      if (onSuccess) onSuccess();
     } catch (err: any) {
-      setError(err.message || "Failed to create category");
+      toast.error(err?.message || "Operation failed");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3 rounded-xl border border-neutral-700 p-4 mt-4">
-      <h2 className="font-semibold text-sm">Create new category</h2>
-      {error && <p className="text-xs text-red-400">{error}</p>}
-      {success && <p className="text-xs text-green-400">{success}</p>}
+    <Card className="border-none shadow-none">
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-      <div className="space-y-1">
-        <label className="text-xs">Name</label>
-        <input
-          className="w-full rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm"
-          value={name}
-          onChange={e => setName(e.target.value)}
-        />
-      </div>
+            <FormField
+              control={form.control}
+              name="slug"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Slug</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      value={field.value || ""}
+                      placeholder={
+                        form.watch("name")
+                          ? autoSlug(form.watch("name"))
+                          : "auto-generated"
+                      }
+                    />
+                  </FormControl>
+                  <FormDescription className="text-muted-foreground text-xs">
+                    Leave empty to auto-generate from name
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-      <div className="space-y-1">
-        <label className="text-xs">Slug (optional)</label>
-        <input
-          className="w-full rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm"
-          value={slug}
-          onChange={e => setSlug(e.target.value)}
-          placeholder="auto from name if empty"
-        />
-      </div>
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="costCoins"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cost (Coins)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        {...field}
+                        value={field.value as number | undefined}
+                        onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-      <div className="space-y-1">
-        <label className="text-xs">Cost coins</label>
-        <input
-          type="number"
-          className="w-full rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm"
-          value={costCoins}
-          onChange={e => setCostCoins(Number(e.target.value))}
-        />
-      </div>
+              <FormField
+                control={form.control}
+                name="maxCoinsPerUser"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Max Coins / User</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        {...field}
+                        value={field.value as number | undefined}
+                        onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-      <div className="space-y-1">
-        <label className="text-xs">Max coins per user</label>
-        <input
-          type="number"
-          className="w-full rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm"
-          value={maxCoinsPerUser}
-          onChange={e => setMaxCoinsPerUser(Number(e.target.value))}
-        />
-      </div>
-
-      <button type="submit" disabled={loading} className="w-full rounded bg-green-700 py-2 text-sm font-medium disabled:opacity-60">
-        {loading ? "Saving..." : "Create category"}
-      </button>
-    </form>
+            <div className="flex gap-2 pt-2">
+              {isEditing && onSuccess && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onSuccess}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+              )}
+              <Button type="submit" disabled={loading} className="flex-1">
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isEditing ? "Update Category" : "Create Category"}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
   );
 }

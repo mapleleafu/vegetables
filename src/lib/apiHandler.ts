@@ -4,8 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { ApiError, ForbiddenError, UnauthorizedError } from "@/lib/errors";
 import { Prisma } from "@prisma/client";
 import { ZodError } from "zod";
-
-type UserRole = "USER" | "ADMIN";
+import { UserRole } from "@/types/user";
 
 type RouteHandlerContext = {
   params: Promise<Record<string, string>>;

@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { apiHandler } from "@/lib/apiHandler";
-import { BadRequestError } from "@/lib/errors";
 import { createCategorySchema } from "@/lib/validations/categories";
 
 export const GET = apiHandler(async (req, { params }, user) => {
@@ -36,5 +35,5 @@ export const POST = apiHandler(
 
     return NextResponse.json(category);
   },
-  { requiredRole: "ADMIN" }
+  { requiredRole: "ADMIN" },
 );

@@ -53,6 +53,9 @@ model Category {
   colorHex        String?
   costCoins       Int     @default(0)
   maxCoinsPerUser Int     @default(0)
+  isActive        Boolean @default(true)
+  isDeleted       Boolean @default(false)
+  deletedAt       DateTime?
 
   parentId String?
   parent   Category?  @relation("CategoryToSubcategories", fields: [parentId], references: [id])
