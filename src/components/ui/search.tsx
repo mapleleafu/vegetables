@@ -2,6 +2,7 @@
 
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import { useDebouncedCallback } from "use-debounce";
+import { Input } from "@/components/ui/input"
 
 export function Search({ placeholder }: { placeholder?: string }) {
   const searchParams = useSearchParams();
@@ -21,7 +22,7 @@ export function Search({ placeholder }: { placeholder?: string }) {
 
   return (
     <div className="relative flex flex-1 shrink-0">
-      <input
+      <Input
         className="peer block w-full rounded-md border border-neutral-700 bg-neutral-900 py-2 px-4 text-sm outline-none placeholder:text-neutral-500 focus:border-green-600 focus:ring-1 focus:ring-green-600"
         placeholder={placeholder}
         onChange={e => handleSearch(e.target.value)}
