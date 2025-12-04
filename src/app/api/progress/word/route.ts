@@ -20,18 +20,20 @@ export const POST = apiHandler(async (req, { params }, user) => {
   const userId = user.id;
   const categoryId = word.categoryId;
 
-  const [progress, categoryProgress] = await Promise.all([
-    prisma.wordProgress.upsert({
-      where: { userId_wordId: { userId, wordId } },
-      update: {},
-      create: { userId, wordId },
-    }),
-    prisma.categoryProgress.upsert({
+  const progress = await prisma.wordProgress.upsert({
+    where: { userId_wordId: { userId, wordId } },
+    update: {},
+    create: { userId, wordId },
+  });
+
+  let categoryProgress = null;
+  if (categoryId) {
+    categoryProgress = await prisma.categoryProgress.upsert({
       where: { userId_categoryId: { userId, categoryId } },
       update: {},
       create: { userId, categoryId, isUnlocked: true },
-    }),
-  ]);
+    });
+  }
 
   let timesSeen = progress.timesSeen + 1;
   let timesCorrect = progress.timesCorrect;
@@ -48,7 +50,9 @@ export const POST = apiHandler(async (req, { params }, user) => {
   let coinsToAdd = 0;
   if (isCorrect) {
     const wordCoinsLeft = word.maxCoinsPerUser - progress.coinsEarned;
-    const categoryCoinsLeft = (word.category?.maxCoinsPerUser || 0) - categoryProgress.coinsEarned;
+    const categoryCoinsLeft =
+      (word.category?.maxCoinsPerUser || 0) -
+      (categoryProgress?.coinsEarned ?? 0);
 
     if (wordCoinsLeft > 0 && categoryCoinsLeft > 0) {
       coinsToAdd = word.coinValue;
@@ -57,7 +61,7 @@ export const POST = apiHandler(async (req, { params }, user) => {
     }
   }
 
-  const result = await prisma.$transaction(async tx => {
+  const result = await prisma.$transaction(async (tx) => {
     const updatedWordProgress = await tx.wordProgress.update({
       where: { id: progress.id },
       data: {
@@ -70,12 +74,15 @@ export const POST = apiHandler(async (req, { params }, user) => {
       },
     });
 
-    const updatedCatProgress = await tx.categoryProgress.update({
-      where: { id: categoryProgress.id },
-      data: {
-        coinsEarned: { increment: coinsToAdd },
-      },
-    });
+    let updatedCatProgress = null;
+    if (categoryProgress) {
+      updatedCatProgress = await tx.categoryProgress.update({
+        where: { id: categoryProgress.id },
+        data: {
+          coinsEarned: { increment: coinsToAdd },
+        },
+      });
+    }
 
     const updatedUser = await tx.user.update({
       where: { id: userId },

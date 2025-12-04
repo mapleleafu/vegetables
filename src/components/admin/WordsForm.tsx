@@ -1,52 +1,92 @@
 "use client";
 
-import { FormEvent, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { api } from "@/lib/api";
+import { uploadImage } from "@/lib/storage";
 import { toast } from "sonner";
 import { Category, Word } from "@prisma/client";
+import { Loader2, X, ImagePlus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { uploadImage } from "@/lib/storage";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { createWordSchema } from "@/lib/validations/words";
+
+const formSchema = createWordSchema.extend({
+  slug: z.string().optional(),
+  categoryId: z.string().nullable().optional(),
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 interface WordsFormProps {
-  initialData?: Word | null;
+  initialData?: (Word & { translations?: any[] }) | null;
   onSuccess?: () => void;
 }
 
 export function WordsForm({ initialData, onSuccess }: WordsFormProps) {
   const isEditing = !!initialData;
-
-  const [categoryId, setCategoryId] = useState(initialData?.categoryId || "");
-  const [name, setName] = useState(initialData?.name || "");
-  const [slug, setSlug] = useState(initialData?.slug || "");
-  const [coinValue, setCoinValue] = useState(initialData?.coinValue ?? 1);
-  const [maxCoinsPerUser, setMaxCoinsPerUser] = useState(initialData?.maxCoinsPerUser ?? 1);
-  const [isActive, setIsActive] = useState(initialData?.isActive ?? true);
-
+  const [categories, setCategories] = useState<Category[]>([]);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState(initialData?.imageUrl || "");
-
   const [loading, setLoading] = useState(false);
-  const [categories, setCategories] = useState<Category[]>([]);
+
+  const form = useForm({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      categoryId: initialData?.categoryId || undefined,
+      name: initialData?.name || "",
+      slug: initialData?.slug || "",
+      imageUrl: initialData?.imageUrl || "",
+      coinValue: initialData?.coinValue ?? 1,
+      maxCoinsPerUser: initialData?.maxCoinsPerUser ?? 1,
+      isActive: initialData?.isActive ?? true,
+      translations: initialData?.translations || [],
+    },
+  });
 
   useEffect(() => {
     api.categories
       .getAll()
       .then(setCategories)
-      .catch(err => toast.error("Failed to load categories"));
+      .catch(() => toast.error("Failed to load categories"));
   }, []);
 
   useEffect(() => {
     if (initialData) {
-      setCategoryId(initialData.categoryId || "");
-      setName(initialData.name);
-      setSlug(initialData.slug);
-      setCoinValue(initialData.coinValue);
-      setMaxCoinsPerUser(initialData.maxCoinsPerUser);
-      setIsActive(initialData.isActive);
+      form.reset({
+        categoryId: initialData.categoryId || null,
+        name: initialData.name,
+        slug: initialData.slug,
+        imageUrl: initialData.imageUrl || "",
+        coinValue: initialData.coinValue,
+        maxCoinsPerUser: initialData.maxCoinsPerUser,
+        isActive: initialData.isActive,
+        translations: initialData.translations || [],
+      });
       setPreviewUrl(initialData.imageUrl || "");
       setImageFile(null);
     }
-  }, [initialData]);
+  }, [initialData, form]);
 
   function autoSlug(value: string) {
     return value
@@ -64,38 +104,32 @@ export function WordsForm({ initialData, onSuccess }: WordsFormProps) {
     setPreviewUrl(URL.createObjectURL(file));
   }
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
+  async function onSubmit(values: FormValues) {
     setLoading(true);
-
-    const finalSlug = slug || autoSlug(name);
+    const finalSlug = values.slug || autoSlug(values.name);
 
     try {
-      let finalImageUrl = previewUrl; // Default to existing URL or pasted URL
+      let finalImageUrl = previewUrl;
 
       if (imageFile) {
         finalImageUrl = await uploadImage(imageFile, finalSlug);
       }
 
       const payload = {
-        categoryId,
-        name,
+        ...values,
         slug: finalSlug,
-        coinValue,
-        maxCoinsPerUser,
-        isActive,
         imageUrl: finalImageUrl || null,
+        coinValue: Number(values.coinValue),
+        maxCoinsPerUser: Number(values.maxCoinsPerUser),
       };
 
       if (isEditing && initialData) {
         await api.words.update(initialData.id, payload);
-        toast.success("Word updated");
+        toast.success("Word updated successfully");
       } else {
         await api.words.create(payload);
-        toast.success("Word created");
-
-        setName("");
-        setSlug("");
+        toast.success("Word created successfully");
+        form.reset();
         setPreviewUrl("");
         setImageFile(null);
       }
@@ -109,111 +143,203 @@ export function WordsForm({ initialData, onSuccess }: WordsFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 rounded-xl border border-neutral-700 p-4 mt-4 bg-neutral-900/50">
-      <h2 className="font-semibold text-sm flex items-center gap-2">
-        {isEditing ? "Edit Word" : "Create New Word"}
-        {isEditing && <span className="text-xs font-normal text-neutral-500">({initialData.id})</span>}
-      </h2>
-
-      <div className="space-y-1">
-        <label className="text-xs text-neutral-400">Category</label>
-        <select
-          className="w-full rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm"
-          value={categoryId}
-          onChange={e => setCategoryId(e.target.value)}>
-          <option value="">— No Category —</option>
-          {categories.map(c => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className="grid grid-cols-2 gap-2">
-        <div className="space-y-1">
-          <label className="text-xs text-neutral-400">Name</label>
-          <input
-            className="w-full rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm"
-            value={name}
-            onChange={e => setName(e.target.value)}
-          />
-        </div>
-        <div className="space-y-1">
-          <label className="text-xs text-neutral-400">Slug</label>
-          <input
-            className="w-full rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm"
-            value={slug}
-            onChange={e => setSlug(e.target.value)}
-            placeholder={name ? autoSlug(name) : "auto"}
-          />
-        </div>
-      </div>
-
-      {/* Image Upload Block */}
-      <div className="space-y-2">
-        <label className="text-xs text-neutral-400">Image</label>
-        <div className="flex gap-4 items-start">
-          {previewUrl && (
-            <div className="relative w-16 h-16 rounded overflow-hidden border border-neutral-700 shrink-0">
-              <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
-              <button
-                type="button"
-                onClick={() => {
-                  setImageFile(null);
-                  setPreviewUrl("");
-                }}
-                className="absolute top-0 right-0 bg-black/60 text-white p-0.5 hover:bg-red-500">
-                ✕
-              </button>
-            </div>
-          )}
-          <div className="flex-1">
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleFileSelect}
-              className="text-xs text-neutral-400 file:mr-2 file:py-1 file:px-2 file:rounded file:bg-neutral-800 file:text-neutral-300"
+    <Card className="mt-4">
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="categoryId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Category</FormLabel>
+                  <Select
+                    value={field.value || "null"}
+                    onValueChange={(val) =>
+                      field.onChange(val === "null" ? null : val)
+                    }
+                  >
+                    <FormControl className="w-full">
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a category" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem
+                        value="null"
+                        className="text-muted-foreground font-bold italic"
+                      >
+                        — No Category —
+                      </SelectItem>
+                      {categories.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>
+                          {c.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-        </div>
-      </div>
 
-      <div className="grid grid-cols-3 gap-2 items-end">
-        <div className="space-y-1">
-          <label className="text-xs text-neutral-400">Value</label>
-          <input
-            type="number"
-            className="w-full rounded border border-neutral-700 bg-neutral-900 px-2 py-2 text-sm"
-            value={coinValue}
-            onChange={e => setCoinValue(Number(e.target.value))}
-          />
-        </div>
-        <div className="space-y-1">
-          <label className="text-xs text-neutral-400">Max</label>
-          <input
-            type="number"
-            className="w-full rounded border border-neutral-700 bg-neutral-900 px-2 py-2 text-sm"
-            value={maxCoinsPerUser}
-            onChange={e => setMaxCoinsPerUser(Number(e.target.value))}
-          />
-        </div>
-        <div className="flex items-center gap-2 pb-2">
-          <Switch checked={isActive} onCheckedChange={setIsActive} className="data-[state=checked]:bg-green-600" />
-          <label className="text-xs text-neutral-400">Active</label>
-        </div>
-      </div>
+            <div className="grid grid-cols-1 items-baseline gap-4 md:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-      <div className="flex gap-2">
-        {isEditing && (
-          <button type="button" onClick={() => onSuccess?.()} className="flex-1 rounded border border-neutral-700 py-2 text-sm hover:bg-neutral-800">
-            Cancel
-          </button>
-        )}
-        <button type="submit" disabled={loading} className="flex-1 rounded bg-green-700 py-2 text-sm font-medium disabled:opacity-50">
-          {loading ? "Saving..." : isEditing ? "Update Word" : "Create Word"}
-        </button>
-      </div>
-    </form>
+              <FormField
+                control={form.control}
+                name="slug"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Slug</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        value={field.value || ""}
+                        placeholder={
+                          form.watch("name")
+                            ? autoSlug(form.watch("name"))
+                            : "auto-generated"
+                        }
+                      />
+                    </FormControl>
+                    <FormDescription className="text-muted-foreground text-xs">
+                      Leave empty to auto-generate
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <FormLabel>Image</FormLabel>
+              <div className="border-input bg-accent/20 flex items-start gap-4 rounded-md border p-3">
+                {previewUrl ? (
+                  <div className="border-border relative h-20 w-20 shrink-0 overflow-hidden rounded-md border">
+                    <img
+                      src={previewUrl}
+                      alt="Preview"
+                      className="h-full w-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setImageFile(null);
+                        setPreviewUrl("");
+                      }}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90 absolute top-0 right-0 p-1 transition-colors"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="border-muted-foreground/50 bg-muted/50 flex h-20 w-20 shrink-0 items-center justify-center rounded-md border border-dashed">
+                    <ImagePlus className="text-muted-foreground h-8 w-8" />
+                  </div>
+                )}
+
+                <div className="flex-1 space-y-2">
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileSelect}
+                    className="file:text-foreground cursor-pointer"
+                  />
+                  <p className="text-muted-foreground text-xs">
+                    Max size 5MB. Uploads are processed automatically on save.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 items-end gap-4 md:grid-cols-3">
+              <FormField
+                control={form.control}
+                name="coinValue"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Value</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        {...field}
+                        onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="maxCoinsPerUser"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Max Coins</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        {...field}
+                        onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="isActive"
+                render={({ field }) => (
+                  <FormItem className="bg-card flex flex-row items-center justify-between rounded-lg border p-2 shadow-sm">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">Active</FormLabel>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              {isEditing && onSuccess && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onSuccess}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+              )}
+              <Button type="submit" disabled={loading} className="flex-1">
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isEditing ? "Update Word" : "Create Word"}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
   );
 }

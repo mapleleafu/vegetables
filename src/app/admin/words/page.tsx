@@ -2,40 +2,34 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
-import Link from "next/link";
-import { WordsForm } from "@/components/admin/WordsForm";
-import { Search } from "@/components/ui/search";
-import { PaginationWithLinks } from "@/components/ui/paginationWithLinks";
 import Image from "next/image";
-import { Image as ImageIcon } from "lucide-react";
+import { Image as ImageIcon, Plus } from "lucide-react";
 import { Prisma } from "@prisma/client";
 import { MenuButton } from "@/components/MenuButton";
+import { Search } from "@/components/ui/search";
+import { PaginationWithLinks } from "@/components/ui/paginationWithLinks";
+import { Button } from "@/components/ui/button";
+import { WordDialog } from "@/components/admin/WordDialog";
 
-export default async function AdminWordsPage({ searchParams }: { searchParams: Promise<{ page?: string; query?: string }> }) {
+export default async function AdminWordsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string; query?: string }>;
+}) {
   const session = await getServerSession(authOptions);
-
-  if (!session || !session.user) {
-    redirect("/login");
-  }
-
-  const userId = (session.user as any).id as string;
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { role: true },
-  });
-
-  if (!user || user.role !== "ADMIN") {
-    redirect("/");
-  }
+  if (session?.user?.role !== "ADMIN") redirect("/");
 
   const params = await searchParams;
   const page = parseInt(params.page || "1");
   const query = params.query || "";
-  const pageSize = 5;
+  const pageSize = 20;
 
   const where: Prisma.WordWhereInput = query
     ? {
-        OR: [{ name: { contains: query, mode: "insensitive" } }, { slug: { contains: query, mode: "insensitive" } }],
+        OR: [
+          { name: { contains: query, mode: "insensitive" } },
+          { slug: { contains: query, mode: "insensitive" } },
+        ],
       }
     : {};
 
@@ -50,7 +44,7 @@ export default async function AdminWordsPage({ searchParams }: { searchParams: P
   ]);
 
   return (
-    <main className="min-h-screen p-4 max-w-md mx-auto space-y-6">
+    <main className="mx-auto min-h-screen max-w-md space-y-4 p-4">
       <header className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Admin · Words</h1>
         <MenuButton />
@@ -60,35 +54,51 @@ export default async function AdminWordsPage({ searchParams }: { searchParams: P
         <Search placeholder="Search name or slug..." />
 
         {words.length === 0 ? (
-          <div className="text-center py-8 text-neutral-400 text-sm border border-dashed border-neutral-700 rounded-xl">
+          <div className="border-border text-muted-foreground rounded-xl border border-dashed py-8 text-center text-sm">
             {query ? `No results for "${query}"` : "No words found."}
           </div>
         ) : (
-          <div className="space-y-2">
-            {words.map(c => (
-              <Link
-                href={`/admin/words/${c.id}`}
-                key={c.id}
-                className="flex items-center justify-between rounded-xl border border-neutral-700 px-4 py-3 transition-colors hover:bg-neutral-800">
-                <div className="text-sm font-medium">{c.name}</div>
-                {c.imageUrl ? (
-                  <Image src={c.imageUrl} alt={c.name} width={30} height={30} className="rounded-md object-cover h-[30px] w-[30px]" />
-                ) : (
-                  <div className="flex h-[30px] w-[30px] items-center justify-center rounded-md bg-neutral-800 text-neutral-500">
-                    <ImageIcon size={16} />
-                  </div>
-                )}
-              </Link>
+          <div className="grid grid-cols-2 gap-2 md:grid-cols-2 lg:grid-cols-2">
+            {words.map((word) => (
+              <WordDialog key={word.id} word={word}>
+                <Button
+                  variant="outline"
+                  className="h-auto w-full justify-between py-2"
+                >
+                  <div className="text-sm font-medium">{word.name}</div>
+                  {word.imageUrl ? (
+                    <Image
+                      src={word.imageUrl}
+                      alt={word.name}
+                      width={30}
+                      height={30}
+                      className="h-[30px] w-[30px] rounded-md object-cover"
+                    />
+                  ) : (
+                    <div className="bg-secondary text-muted-foreground flex h-[30px] w-[30px] items-center justify-center rounded-md">
+                      <ImageIcon size={16} />
+                    </div>
+                  )}
+                </Button>
+              </WordDialog>
             ))}
           </div>
         )}
 
-        <PaginationWithLinks page={page} pageSize={pageSize} totalCount={totalCount} />
-      </section>
+        <PaginationWithLinks
+          page={page}
+          pageSize={pageSize}
+          totalCount={totalCount}
+        />
 
-      <div className="pt-4 border-t border-neutral-800">
-        <WordsForm />
-      </div>
+        <div className="border-t pt-4">
+          <WordDialog>
+            <Button className="w-full" variant="secondary">
+              <Plus className="mr-2 h-4 w-4" /> Create a New Word
+            </Button>
+          </WordDialog>
+        </div>
+      </section>
     </main>
   );
 }

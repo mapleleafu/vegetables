@@ -23,7 +23,7 @@ export default async function MenuActions() {
           </Link>
         </Button>
         <Button asChild variant="ghost" className="justify-start px-2">
-          <Link href="/admin/categories">
+          <Link href="/categories">
             <BookOpen className="mr-2 h-4 w-4" />
             Categories
           </Link>

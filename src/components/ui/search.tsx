@@ -23,7 +23,7 @@ export function Search({ placeholder }: { placeholder?: string }) {
   return (
     <div className="relative flex flex-1 shrink-0">
       <Input
-        className="peer block w-full rounded-md border border-neutral-700 bg-neutral-900 py-2 px-4 text-sm outline-none placeholder:text-neutral-500 focus:border-green-600 focus:ring-1 focus:ring-green-600"
+        className="w-full"
         placeholder={placeholder}
         onChange={e => handleSearch(e.target.value)}
         defaultValue={searchParams.get("query")?.toString()}

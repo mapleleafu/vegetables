@@ -5,27 +5,13 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Search } from "@/components/ui/search";
 import { PaginationWithLinks } from "@/components/ui/paginationWithLinks";
-import Image from "next/image";
-import { Image as ImageIcon } from "lucide-react";
 import { Prisma } from "@prisma/client";
 import { CategoryForm } from "@/components/admin/CategoryForm";
+import { MenuButton } from "@/components/MenuButton";
 
 export default async function AdminCategoriesPage({ searchParams }: { searchParams: Promise<{ page?: string; query?: string }> }) {
   const session = await getServerSession(authOptions);
-
-  if (!session || !session.user) {
-    redirect("/login");
-  }
-
-  const userId = (session.user as any).id as string;
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { role: true },
-  });
-
-  if (!user || user.role !== "ADMIN") {
-    redirect("/");
-  }
+  if (session?.user?.role !== "ADMIN") redirect("/");
 
   const params = await searchParams;
   const page = parseInt(params.page || "1");
@@ -49,12 +35,10 @@ export default async function AdminCategoriesPage({ searchParams }: { searchPara
   ]);
 
   return (
-    <main className="min-h-screen p-4 max-w-md mx-auto space-y-6">
-      <header className="flex items-center justify-between">
+    <main className="min-h-screen p-4 max-w-md mx-auto">
+      <header className="flex justify-between">
         <h1 className="text-xl font-semibold">Admin · Categories</h1>
-        <Link href="/admin" className="text-sm underline">
-          Back
-        </Link>
+        <MenuButton />
       </header>
 
       <section className="space-y-4">
@@ -80,7 +64,7 @@ export default async function AdminCategoriesPage({ searchParams }: { searchPara
         <PaginationWithLinks page={page} pageSize={pageSize} totalCount={totalCount} />
       </section>
 
-      <div className="pt-4 border-t border-neutral-800">
+      <div className="pt-4 border-neutral-800">
         <CategoryForm />
       </div>
     </main>

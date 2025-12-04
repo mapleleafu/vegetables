@@ -1,33 +1,18 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { MenuButton } from "@/components/MenuButton";
 
 export default async function AdminPage() {
   const session = await getServerSession(authOptions);
-
-  if (!session || !session.user) {
-    redirect("/login");
-  }
-
-  const userId = (session.user as any).id as string;
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { role: true },
-  });
-
-  if (!user || user.role !== "ADMIN") {
-    redirect("/");
-  }
+  if (session?.user?.role !== "ADMIN") redirect("/");
 
   return (
-    <main className="min-h-screen p-4 max-w-md mx-auto space-y-4">
-      <header className="flex items-center justify-between">
+    <main className="min-h-screen p-4 max-w-md mx-auto space-y-2">
+      <header className="flex justify-between">
         <h1 className="text-xl font-semibold">Admin Panel</h1>
-        <Link href="/" className="text-sm underline">
-          Back to menu
-        </Link>
+        <MenuButton />
       </header>
 
       <section className="space-y-3">
