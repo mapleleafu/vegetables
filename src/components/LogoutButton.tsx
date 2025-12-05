@@ -2,6 +2,7 @@
 
 import { signOut } from "next-auth/react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
 export function LogoutButton() {
   const handleLogout = async () => {
@@ -14,8 +15,8 @@ export function LogoutButton() {
   };
 
   return (
-    <button type="button" onClick={handleLogout} className="flex-1 rounded border border-neutral-700 py-2 text-center cursor-pointer">
+    <Button onClick={handleLogout} className="flex-1 cursor-pointer">
       Logout
-    </button>
+    </Button>
   );
 }

@@ -60,7 +60,7 @@ export default async function AdminWordsPage({
             {query ? `No results for "${query}"` : "No words found."}
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-2 md:grid-cols-2 lg:grid-cols-2">
+          <div className="grid grid-cols-2 gap-2">
             {words.map((word) => (
               <WordDialog key={word.id} word={word}>
                 <Button
