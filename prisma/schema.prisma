@@ -24,12 +24,16 @@ enum CoinReason {
   QUICK_TEST
 }
 
-//TODO: add imageUrl
+enum LanguageCode {
+  TR
+}
+
 model User {
   id             String   @id @default(cuid())
   username       String   @unique
   email          String?
   emailVerified  Boolean  @default(false)
+  imageUrl       String?
   passwordHash   String
   coins          Int      @default(0)
   role           UserRole @default(USER)
@@ -47,14 +51,14 @@ model User {
 }
 
 model Category {
-  id              String  @id @default(cuid())
+  id              String    @id @default(cuid())
   name            String
-  slug            String  @unique
+  slug            String    @unique
   colorHex        String?
-  costCoins       Int     @default(0)
-  maxCoinsPerUser Int     @default(0)
-  isActive        Boolean @default(true)
-  isDeleted       Boolean @default(false)
+  costCoins       Int       @default(0)
+  maxCoinsPerUser Int       @default(0)
+  isActive        Boolean   @default(true)
+  isDeleted       Boolean   @default(false)
   deletedAt       DateTime?
 
   parentId String?
@@ -94,10 +98,10 @@ model Word {
 }
 
 model WordTranslation {
-  id           String  @id @default(cuid())
-  word         Word    @relation(fields: [wordId], references: [id])
+  id           String       @id @default(cuid())
+  word         Word         @relation(fields: [wordId], references: [id])
   wordId       String
-  languageCode String
+  languageCode LanguageCode @default(TR)
   text         String
   audioUrl     String?
 

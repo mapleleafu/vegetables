@@ -1,7 +1,8 @@
 import { z } from "zod";
+import { LANGUAGE_CODES } from "@/types/word";
 
 const translationSchema = z.object({
-  languageCode: z.string().min(2, "Language code must be at least 2 characters"),
+  languageCode: z.enum(LANGUAGE_CODES),
   text: z.string().min(1, "Translation text is required"),
   audioUrl: z.string().url("Invalid audio URL").nullish().or(z.literal("")),
 });
