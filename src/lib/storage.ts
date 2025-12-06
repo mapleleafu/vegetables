@@ -1,9 +1,16 @@
 import { supabase } from "./supabaseClient";
 
-export async function uploadImage(file: File, path: string) {
+export type UploadType = "images" | "audios";
+
+const generateUniqueFileName = (path: string, file: File) => {
   const fileExt = file.name.split(".").pop();
   const fileName = `${path}-${Date.now()}.${fileExt}`;
-  const filePath = `images/${fileName}`;
+  return fileName;
+}
+
+export async function uploadFile(file: File, path: string, uploadType: UploadType): Promise<string> {
+  const fileName = generateUniqueFileName(path, file);
+  const filePath = `${uploadType}/${fileName}`;
 
   const { error } = await supabase.storage
     .from("assets")

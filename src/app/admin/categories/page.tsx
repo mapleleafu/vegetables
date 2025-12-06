@@ -6,7 +6,7 @@ import { Plus, Folder } from "lucide-react";
 import { Prisma } from "@prisma/client";
 import { MenuButton } from "@/components/MenuButton";
 import { Search } from "@/components/ui/search";
-import { PaginationWithLinks } from "@/components/ui/paginationWithLinks";
+import { PaginationWithLinks } from "@/components/ui/pagination-with-links";
 import { Button } from "@/components/ui/button";
 import { CategoryDialog } from "@/components/admin/CategoryDialog";
 import DeleteCategoryButton from "@/components/admin/DeleteCategoryButton";

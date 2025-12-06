@@ -7,7 +7,7 @@ import { Image as ImageIcon, Plus } from "lucide-react";
 import { Prisma } from "@prisma/client";
 import { MenuButton } from "@/components/MenuButton";
 import { Search } from "@/components/ui/search";
-import { PaginationWithLinks } from "@/components/ui/paginationWithLinks";
+import { PaginationWithLinks } from "@/components/ui/pagination-with-links";
 import { Button } from "@/components/ui/button";
 import { WordDialog } from "@/components/admin/WordDialog";
 
@@ -40,6 +40,7 @@ export default async function AdminWordsPage({
       where,
       orderBy: { createdAt: "desc" },
       take: pageSize,
+      include: { translations: true },
       skip: (page - 1) * pageSize,
     }),
     prisma.word.count({ where }),
