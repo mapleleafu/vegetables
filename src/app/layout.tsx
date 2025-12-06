@@ -4,6 +4,7 @@ import { Providers } from "@/components/Providers";
 import { Toaster } from "@/components/ui/sonner";
 import { Inter } from "next/font/google";
 const inter = Inter({ subsets: ["latin"] });
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 export const metadata: Metadata = {
   title: "Gabs ❤️ Atakan",
@@ -29,10 +30,12 @@ export default function RootLayout({
       <body
         className={`${inter.className} bg-background text-foreground antialiased`}
       >
-        <Providers>
-          {children}
-          <Toaster />
-        </Providers>
+        <TooltipProvider>
+          <Providers>
+            {children}
+            <Toaster />
+          </Providers>
+        </TooltipProvider>
       </body>
     </html>
   );
