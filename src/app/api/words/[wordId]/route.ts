@@ -11,11 +11,30 @@ export const PUT = apiHandler(
 
     const body = await req.json();
     const validatedData = createWordSchema.parse(body);
-    const { translations, ...updateData } = validatedData as any;
+    const { translations, ...updateData } = validatedData;
 
-    const word = await prisma.word.update({
-      where: { id },
-      data: updateData,
+    const word = await prisma.$transaction(async (tx) => {
+      const updatedWord = await tx.word.update({
+        where: { id },
+        data: updateData,
+      });
+
+      if (translations && translations.length > 0) {
+        await tx.wordTranslation.deleteMany({
+          where: { wordId: id },
+        });
+
+        await tx.wordTranslation.createMany({
+          data: translations.map((t) => ({
+            wordId: id,
+            languageCode: t.languageCode,
+            text: t.text,
+            audioUrl: t.audioUrl || null,
+          })),
+        });
+      }
+
+      return updatedWord;
     });
 
     return NextResponse.json(word);
