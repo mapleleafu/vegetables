@@ -142,7 +142,7 @@ export function WordsForm({ initialData, onSuccess }: WordsFormProps) {
     try {
       let finalImageUrl = previewUrl;
       if (imageFile) {
-        finalImageUrl = await uploadFile(imageFile, finalSlug, "images");
+        finalImageUrl = await uploadFile(imageFile, finalSlug, "images", "words");
       }
 
       const processedTranslations = await Promise.all(
