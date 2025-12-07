@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { Plus, Folder } from "lucide-react";
 import { Prisma } from "@prisma/client";
-import { MenuButton } from "@/components/MenuButton";
+import { Navigation } from "@/components/Navigation";
 import { Search } from "@/components/ui/search";
 import { PaginationWithLinks } from "@/components/ui/pagination-with-links";
 import { Button } from "@/components/ui/button";
@@ -45,10 +45,12 @@ export default async function AdminCategoriesPage({
 
   return (
     <main className="mx-auto min-h-screen max-w-md space-y-4 p-4">
-      <header className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Admin · Categories</h1>
-        <MenuButton />
-      </header>
+      <Navigation
+        items={[
+          { label: "Admin", href: "/admin" },
+          { label: "Categories"},
+        ]}
+      />
 
       <section className="space-y-4">
         <Search placeholder="Search name or slug..." />

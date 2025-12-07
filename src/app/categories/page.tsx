@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import { MenuButton } from "@/components/MenuButton";
+import { Navigation } from "@/components/Navigation";
 
 export default async function HomePage() {
   const categories = await prisma.category.findMany({
@@ -15,7 +15,7 @@ export default async function HomePage() {
 
   return (
     <main className="min-h-screen p-4 flex flex-col gap-4 max-w-md mx-auto">
-      <MenuButton />
+      <Navigation items={[{ label: "Categories" }]} />
 
       <section className="mt-4 space-y-2">
         {categories.map(c => (

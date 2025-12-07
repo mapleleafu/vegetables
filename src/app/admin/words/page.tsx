@@ -5,11 +5,11 @@ import { redirect } from "next/navigation";
 import Image from "next/image";
 import { Image as ImageIcon, Plus } from "lucide-react";
 import { Prisma } from "@prisma/client";
-import { MenuButton } from "@/components/MenuButton";
 import { Search } from "@/components/ui/search";
 import { PaginationWithLinks } from "@/components/ui/pagination-with-links";
 import { Button } from "@/components/ui/button";
 import { WordDialog } from "@/components/admin/WordDialog";
+import { Navigation } from "@/components/Navigation";
 
 //TODO: cache or do pagination for categories so we don't load all for both editing and creating new words
 
@@ -48,10 +48,9 @@ export default async function AdminWordsPage({
 
   return (
     <main className="mx-auto min-h-screen max-w-md space-y-4 p-4">
-      <header className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Admin · Words</h1>
-        <MenuButton />
-      </header>
+      <Navigation
+        items={[{ label: "Admin", href: "/admin" }, { label: "Words" }]}
+      />
 
       <section className="space-y-4">
         <Search placeholder="Search name or slug..." />

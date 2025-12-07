@@ -2,10 +2,9 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import { Coins } from "@/components/ui/coins";
-import { MenuButton } from "@/components/MenuButton";
 import { Image as ImageIcon } from "lucide-react";
 import { PlayAudioButton } from "@/components/PlayAudioButton";
-import { LanguageCode, LANGUAGE_NAMES } from "@/types/word";
+import { Navigation } from "@/components/Navigation";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -30,7 +29,12 @@ export default async function CategoryPage({ params }: Props) {
 
   return (
     <main className="mx-auto min-h-screen max-w-md p-4">
-      <MenuButton />
+      <Navigation
+        items={[
+          { label: "Categories", href: "/categories" },
+          { label: category.name },
+        ]}
+      />
 
       <div className="rounded-2xl border border-white/50 bg-green-950/50 p-4">
         {words.length === 0 ? (

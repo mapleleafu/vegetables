@@ -15,7 +15,7 @@ export const userApi = {
     }),
 
   updatePassword: (data: PasswordChangeData) =>
-    sendRequest<User>("/api/user/password", {
+    sendRequest<{ success: boolean }>("/api/user/password", {
       method: "PUT",
       body: JSON.stringify(data),
     }),
