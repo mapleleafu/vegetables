@@ -6,6 +6,16 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -38,44 +48,65 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-4">
-      <form onSubmit={handleSubmit} className="relative w-full max-w-sm space-y-4 rounded-2xl border border-neutral-700 bg-neutral-900 p-6">
-        <Link href="/" className="absolute left-4 top-4 text-neutral-400 hover:text-neutral-100 transition-colors">
-          <ArrowLeft size={20} />
-        </Link>
-        <h1 className="text-lg font-semibold text-center">Login</h1>
-        <div className="space-y-1">
-          <label className="text-sm">Username</label>
-          <input
-            className="w-full rounded border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm"
-            type="text"
-            value={username}
-            onChange={e => setUsername(e.target.value)}
-          />
-        </div>
-        <div className="space-y-1">
-          <label className="text-sm">Password</label>
-          <div className="relative">
-            <input
-              className="w-full rounded border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm pr-10"
-              type={showPassword ? "text" : "password"}
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-            />
-            <button
+    <main className="flex min-h-screen items-center justify-center p-4">
+      <form onSubmit={handleSubmit} className="relative w-full max-w-sm">
+        <Card className="border-neutral-700 bg-neutral-900">
+          <CardHeader>
+            <div className="absolute top-4 left-4 text-neutral-400 transition-colors hover:text-neutral-100">
+              <Link href="/">
+                <ArrowLeft size={20} />
+              </Link>
+            </div>
+            <CardTitle className="w-full text-center text-lg">Login</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 px-6">
+            <div className="space-y-1">
+              <Label htmlFor="username">Username</Label>
+              <Input
+                id="username"
+                className="w-full"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-1">
+              <Label htmlFor="password">Password</Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  className="pr-10"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute top-1/2 right-2 -translate-y-1/2 p-0"
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+          <CardFooter className="flex flex-col gap-2 px-6">
+            <Button type="submit" className="w-full">
+              Continue
+            </Button>
+            <Button
               type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-200">
-              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-            </button>
-          </div>
-        </div>
-        <button type="submit" className="w-full cursor-pointer rounded bg-green-700 py-2 text-sm font-medium">
-          Continue
-        </button>
-        <button type="button" onClick={handleRegister} className="w-full cursor-pointer rounded bg-blue-700 py-2 text-sm font-medium">
-          Register
-        </button>
+              onClick={handleRegister}
+              variant="secondary"
+              className="w-full"
+            >
+              Register
+            </Button>
+          </CardFooter>
+        </Card>
       </form>
     </main>
   );

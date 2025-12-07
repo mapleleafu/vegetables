@@ -1,7 +1,6 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import Link from "next/link";
-import { LogoutButton } from "@/components/LogoutButton";
 import { Button } from "@/components/ui/button";
 import { LogIn, UserPlus } from "lucide-react";
 
@@ -26,10 +25,4 @@ export default async function AuthActions() {
       </div>
     );
   }
-
-  return (
-    <div className="flex gap-3">
-      <LogoutButton />
-    </div>
-  );
 }
