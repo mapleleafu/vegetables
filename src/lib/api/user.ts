@@ -1,0 +1,22 @@
+import { PasswordChangeData } from "@/lib/validations/user";
+import { sendRequest } from "@/lib/api/client";
+import { User } from "@prisma/client";
+
+export const userApi = {
+  profile: () =>
+    sendRequest<User>("/api/user", {
+      method: "GET",
+    }),
+
+  updateProfile: (formData: FormData) =>
+    sendRequest<User>("/api/user", {
+      method: "PUT",
+      body: formData,
+    }),
+
+  updatePassword: (data: PasswordChangeData) =>
+    sendRequest<User>("/api/user/password", {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
+};

@@ -1,10 +1,21 @@
-export async function sendRequest<T>(url: string, options: RequestInit = {}): Promise<T> {
+export async function sendRequest<T>(
+  url: string,
+  options: RequestInit = {},
+): Promise<T> {
+  const headers: Record<string, string> = {};
+
+  // If we send FormData, we must let the browser set the Content-Type header
+  // automatically so it includes the 'boundary' parameter.
+  if (!(options.body instanceof FormData)) {
+    headers["Content-Type"] = "application/json";
+  }
+
   const res = await fetch(url, {
-    headers: {
-      "Content-Type": "application/json",
-      // NextAuth automatically handles cookies
-    },
     ...options,
+    headers: {
+      ...headers,
+      ...(options.headers as Record<string, string>),
+    },
   });
 
   // Handle non-2xx responses
@@ -13,12 +24,10 @@ export async function sendRequest<T>(url: string, options: RequestInit = {}): Pr
 
     try {
       const json = await res.json();
-      // The backend now guarantees { error: "Message" } format on failure
       if (json.error) {
         errorMessage = json.error;
       }
     } catch (e) {
-      // If parsing JSON fails, fallback to status text
       errorMessage = res.statusText;
     }
 

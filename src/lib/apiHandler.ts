@@ -14,16 +14,26 @@ type ResolvedContext = {
   params: Record<string, string>;
 };
 
-type AuthorizedHandler = (req: Request, context: ResolvedContext, user: { id: string; role: UserRole }) => Promise<NextResponse | any>;
+type AuthorizedHandler = (
+  req: Request,
+  context: ResolvedContext,
+  user: { id: string; role: UserRole; username: string },
+) => Promise<NextResponse | any>;
 
-type PublicHandler = (req: Request, context: ResolvedContext) => Promise<NextResponse | any>;
+type PublicHandler = (
+  req: Request,
+  context: ResolvedContext,
+) => Promise<NextResponse | any>;
 
 interface Options {
   requiredRole?: UserRole;
   isPublic?: boolean;
 }
 
-export function apiHandler(handler: AuthorizedHandler | PublicHandler, options: Options = {}) {
+export function apiHandler(
+  handler: AuthorizedHandler | PublicHandler,
+  options: Options = {},
+) {
   return async (req: Request, context: RouteHandlerContext) => {
     try {
       const resolvedParams = await context.params;
@@ -36,7 +46,11 @@ export function apiHandler(handler: AuthorizedHandler | PublicHandler, options: 
           throw new UnauthorizedError();
         }
 
-        const user = session.user as { id: string; role: UserRole };
+        const user = session.user as {
+          id: string;
+          role: UserRole;
+          username: string;
+        };
 
         if (options.requiredRole && user.role !== options.requiredRole) {
           throw new ForbiddenError("Insufficient permissions");
@@ -48,21 +62,33 @@ export function apiHandler(handler: AuthorizedHandler | PublicHandler, options: 
       return await (handler as PublicHandler)(req, cleanContext);
     } catch (error: any) {
       if (error instanceof ZodError) {
-        return NextResponse.json({ error: error.issues[0].message }, { status: 400 });
+        return NextResponse.json(
+          { error: error.issues[0].message },
+          { status: 400 },
+        );
       }
 
       if (error instanceof ApiError) {
-        return NextResponse.json({ error: error.message }, { status: error.statusCode });
+        return NextResponse.json(
+          { error: error.message },
+          { status: error.statusCode },
+        );
       }
 
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === "P2002") {
-          return NextResponse.json({ error: "A record with this value already exists." }, { status: 409 });
+          return NextResponse.json(
+            { error: "A record with this value already exists." },
+            { status: 409 },
+          );
         }
       }
 
       console.error(error);
-      return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+      return NextResponse.json(
+        { error: "Internal Server Error" },
+        { status: 500 },
+      );
     }
   };
 }

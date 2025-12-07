@@ -1,4 +1,4 @@
-import { sendRequest } from "./client";
+import { sendRequest } from "@/lib/api/client";
 import { Word } from "@prisma/client";
 
 type CreateWordInput = {
