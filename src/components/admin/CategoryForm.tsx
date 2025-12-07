@@ -7,7 +7,7 @@ import * as z from "zod";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { Category } from "@prisma/client";
-import { Loader2 } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -191,7 +191,7 @@ export function CategoryForm({ initialData, onSuccess }: CategoryFormProps) {
                 </Button>
               )}
               <Button type="submit" disabled={loading} className="flex-1">
-                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {loading && <Spinner />}
                 {isEditing ? "Update Category" : "Create Category"}
               </Button>
             </div>

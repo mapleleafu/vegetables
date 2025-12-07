@@ -21,7 +21,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Camera, User as UserIcon, Loader2, Eye, EyeOff } from "lucide-react";
+import { Camera, User as UserIcon, Eye, EyeOff } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 import { User } from "@prisma/client";
 import { LANGUAGE_NAMES } from "@/types/word";
 import { Separator } from "@/components/ui/separator";
@@ -178,7 +179,7 @@ export function UserSettingsDialog({
             <div className="flex w-full items-center justify-between pt-2">
               <LogoutButton />
               <Button onClick={handleProfileUpdate} disabled={isLoading}>
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isLoading && <Spinner />}
                 Save Changes
               </Button>
             </div>
@@ -265,7 +266,7 @@ export function UserSettingsDialog({
                 onClick={handlePasswordUpdate}
                 disabled={isLoading}
               >
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isLoading && <Spinner />}
                 Update Password
               </Button>
             </div>

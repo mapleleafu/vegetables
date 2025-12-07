@@ -8,7 +8,8 @@ import { api } from "@/lib/api";
 import { uploadFile } from "@/lib/storage";
 import { toast } from "sonner";
 import { Category, Word } from "@prisma/client";
-import { Loader2, X, ImagePlus, Plus, Trash } from "lucide-react";
+import { X, ImagePlus, Plus, Trash } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -142,7 +143,12 @@ export function WordsForm({ initialData, onSuccess }: WordsFormProps) {
     try {
       let finalImageUrl = previewUrl;
       if (imageFile) {
-        finalImageUrl = await uploadFile(imageFile, finalSlug, "images", "words");
+        finalImageUrl = await uploadFile(
+          imageFile,
+          finalSlug,
+          "images",
+          "words",
+        );
       }
 
       const processedTranslations = await Promise.all(
@@ -434,7 +440,7 @@ export function WordsForm({ initialData, onSuccess }: WordsFormProps) {
                 </Button>
               )}
               <Button type="submit" disabled={loading} className="flex-1">
-                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {loading && <Spinner />}
                 {isEditing ? "Update Word" : "Create Word"}
               </Button>
             </div>
