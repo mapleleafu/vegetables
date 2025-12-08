@@ -29,17 +29,21 @@ enum LanguageCode {
 }
 
 model User {
-  id             String       @id @default(cuid())
-  username       String       @unique
-  email          String?
-  emailVerified  Boolean      @default(false)
-  imageUrl       String?
-  passwordHash   String
-  coins          Int          @default(0)
+  id            String  @id @default(cuid())
+  username      String  @unique
+  email         String?
+  emailVerified Boolean @default(false)
+  imageUrl      String?
+  passwordHash  String
+
+  coins  Int @default(0)
+  points Int @default(0)
+
   role           UserRole     @default(USER)
   targetLanguage LanguageCode @default(TR)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   notes            Note[]
   focusWords       FocusWord[]
@@ -51,15 +55,14 @@ model User {
 }
 
 model Category {
-  id              String    @id @default(cuid())
-  name            String
-  slug            String    @unique
-  colorHex        String?
-  costCoins       Int       @default(0)
-  maxCoinsPerUser Int       @default(0)
-  isActive        Boolean   @default(true)
-  isDeleted       Boolean   @default(false)
-  deletedAt       DateTime?
+  id        String  @id @default(cuid())
+  name      String
+  slug      String  @unique
+  colorHex  String?
+  costCoins Int     @default(0)
+  isActive  Boolean   @default(true)
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
 
   parentId String?
   parent   Category?  @relation("CategoryToSubcategories", fields: [parentId], references: [id])
@@ -67,23 +70,23 @@ model Category {
 
   words            Word[]
   categoryProgress CategoryProgress[]
-
-  testSessions TestSession[]
+  testSessions     TestSession[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Word {
-  id              String    @id @default(cuid())
-  category        Category? @relation(fields: [categoryId], references: [id])
-  categoryId      String?
-  name            String    @unique
-  slug            String    @unique
-  imageUrl        String?
-  isActive        Boolean   @default(true)
-  maxCoinsPerUser Int       @default(1)
-  coinValue       Int       @default(1)
+  id String @id @default(cuid())
+  category   Category? @relation(fields: [categoryId], references: [id])
+  categoryId String?
+  name     String  @unique
+  slug     String  @unique
+  imageUrl String?
+  isActive Boolean @default(true)
+
+  maxCoinsPerUser Int @default(10)
+  coinValue       Int @default(1)
 
   translations WordTranslation[]
   wordProgress WordProgress[]
@@ -146,35 +149,39 @@ model FavoriteWord {
 }
 
 model WordProgress {
-  id             String    @id @default(cuid())
-  user           User      @relation(fields: [userId], references: [id])
-  userId         String
-  word           Word      @relation(fields: [wordId], references: [id])
-  wordId         String
-  timesSeen      Int       @default(0)
-  timesCorrect   Int       @default(0)
-  timesIncorrect Int       @default(0)
-  mastered       Boolean   @default(false)
-  coinsEarned    Int       @default(0)
-  lastTestedAt   DateTime?
+  id     String @id @default(cuid())
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+  word   Word   @relation(fields: [wordId], references: [id])
+  wordId String
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  timesSeen      Int     @default(0)
+  timesCorrect   Int     @default(0)
+  timesIncorrect Int     @default(0)
+  mastered       Boolean @default(false)
+
+  coinsEarned Int @default(0)
+
+  lastTestedAt DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   @@unique([userId, wordId])
 }
 
 model CategoryProgress {
-  id          String   @id @default(cuid())
-  user        User     @relation(fields: [userId], references: [id])
-  userId      String
-  category    Category @relation(fields: [categoryId], references: [id])
-  categoryId  String
-  isUnlocked  Boolean  @default(false)
-  coinsEarned Int      @default(0)
+  id         String   @id @default(cuid())
+  user       User     @relation(fields: [userId], references: [id])
+  userId     String
+  category   Category @relation(fields: [categoryId], references: [id])
+  categoryId String
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  isUnlocked  Boolean @default(false)
+  coinsEarned Int     @default(0)
+
+  lastTestedAt DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   @@unique([userId, categoryId])
 }
