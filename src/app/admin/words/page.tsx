@@ -26,14 +26,17 @@ export default async function AdminWordsPage({
   const query = params.query || "";
   const pageSize = 20;
 
-  const where: Prisma.WordWhereInput = query
-    ? {
-        OR: [
-          { name: { contains: query, mode: "insensitive" } },
-          { slug: { contains: query, mode: "insensitive" } },
-        ],
-      }
-    : {};
+  const where: Prisma.WordWhereInput = {
+    isActive: true,
+    ...(query
+      ? {
+          OR: [
+            { name: { contains: query, mode: "insensitive" } },
+            { slug: { contains: query, mode: "insensitive" } },
+          ],
+        }
+      : {}),
+  };
 
   const [words, totalCount] = await prisma.$transaction([
     prisma.word.findMany({

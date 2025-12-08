@@ -17,14 +17,17 @@ export default async function HomePage({
   const query = params.query || "";
   const pageSize = 5;
 
-  const where: Prisma.CategoryWhereInput = query
-    ? {
-        OR: [
-          { name: { contains: query, mode: "insensitive" } },
-          { slug: { contains: query, mode: "insensitive" } },
-        ],
-      }
-    : {};
+  const where: Prisma.CategoryWhereInput = {
+    isActive: true,
+    ... (query
+      ? {
+          OR: [
+            { name: { contains: query, mode: "insensitive" } },
+            { slug: { contains: query, mode: "insensitive" } },
+          ],
+        }
+      : {}),
+  };
 
   const [categories, totalCount] = await prisma.$transaction([
     prisma.category.findMany({
