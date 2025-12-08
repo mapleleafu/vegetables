@@ -32,6 +32,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { createWordSchema } from "@/lib/validations/words";
 import { AudioRecorder } from "@/components/ui/audio-recorder";
 import { LANGUAGE_CODES, LANGUAGE_NAMES } from "@/types/word";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { GAME_CONFIG } from "@/lib/constants";
 
 const formSchema = createWordSchema.extend({
   slug: z.string().optional(),
@@ -55,7 +61,6 @@ interface WordsFormProps {
 }
 
 export function WordsForm({ initialData, onSuccess }: WordsFormProps) {
-  // console.log('~ initialData:', initialData);
   const isEditing = !!initialData;
   const [categories, setCategories] = useState<Category[]>([]);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -71,8 +76,9 @@ export function WordsForm({ initialData, onSuccess }: WordsFormProps) {
       name: initialData?.name || "",
       slug: initialData?.slug || "",
       imageUrl: initialData?.imageUrl || "",
-      coinValue: initialData?.coinValue ?? 1,
-      maxCoinsPerUser: initialData?.maxCoinsPerUser ?? 1,
+      coinValue: initialData?.coinValue ?? GAME_CONFIG.POINTS_PER_CORRECT_WORD,
+      maxCoinsPerUser:
+        initialData?.maxCoinsPerUser ?? GAME_CONFIG.DEFAULT_MAX_COINS_PER_WORD,
       isActive: initialData?.isActive ?? true,
       translations: initialData?.translations,
     },
@@ -389,11 +395,20 @@ export function WordsForm({ initialData, onSuccess }: WordsFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Value</FormLabel>
-                    <Input
-                      type="number"
-                      {...field}
-                      onChange={(e) => field.onChange(e.target.valueAsNumber)}
-                    />
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <Input
+                          type="number"
+                          {...field}
+                          onChange={(e) =>
+                            field.onChange(e.target.valueAsNumber)
+                          }
+                        />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Coin value for this word.</p>
+                      </TooltipContent>
+                    </Tooltip>
                   </FormItem>
                 )}
               />
@@ -403,11 +418,23 @@ export function WordsForm({ initialData, onSuccess }: WordsFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Max Coins</FormLabel>
-                    <Input
-                      type="number"
-                      {...field}
-                      onChange={(e) => field.onChange(e.target.valueAsNumber)}
-                    />
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <Input
+                          type="number"
+                          {...field}
+                          onChange={(e) =>
+                            field.onChange(e.target.valueAsNumber)
+                          }
+                        />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>
+                          Maximum number of coins the user <br /> can earn for
+                          this word.
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
                   </FormItem>
                 )}
               />

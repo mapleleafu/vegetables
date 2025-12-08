@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/form";
 import { Card, CardContent } from "@/components/ui/card";
 import { createCategorySchema } from "@/lib/validations/categories";
+import { GAME_CONFIG } from "@/lib/constants";
 
 type FormValues = z.infer<typeof createCategorySchema>;
 
@@ -38,8 +39,8 @@ export function CategoryForm({ initialData, onSuccess }: CategoryFormProps) {
     defaultValues: {
       name: initialData?.name || "",
       slug: initialData?.slug || "",
-      costCoins: initialData?.costCoins ?? 0,
-      maxCoinsPerUser: initialData?.maxCoinsPerUser ?? 0,
+      costCoins: initialData?.costCoins ?? GAME_CONFIG.DEFAULT_CATEGORY_COST,
+      maxCoinsPerUser: GAME_CONFIG.DEFAULT_MAX_COINS_PER_CATEGORY,
     },
   });
 
@@ -49,14 +50,13 @@ export function CategoryForm({ initialData, onSuccess }: CategoryFormProps) {
         name: initialData.name,
         slug: initialData.slug,
         costCoins: initialData.costCoins,
-        maxCoinsPerUser: initialData.maxCoinsPerUser,
       });
     } else {
       form.reset({
         name: "",
         slug: "",
-        costCoins: 0,
-        maxCoinsPerUser: 0,
+        costCoins: GAME_CONFIG.DEFAULT_CATEGORY_COST,
+        maxCoinsPerUser: GAME_CONFIG.DEFAULT_MAX_COINS_PER_CATEGORY,
       });
     }
   }, [initialData, form]);
@@ -142,10 +142,10 @@ export function CategoryForm({ initialData, onSuccess }: CategoryFormProps) {
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="costCoins"
+                name="maxCoinsPerUser"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Cost (Coins)</FormLabel>
+                    <FormLabel>Max Coins / User</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -161,10 +161,10 @@ export function CategoryForm({ initialData, onSuccess }: CategoryFormProps) {
 
               <FormField
                 control={form.control}
-                name="maxCoinsPerUser"
+                name="costCoins"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Max Coins / User</FormLabel>
+                    <FormLabel>Cost (Coins)</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
