@@ -29,12 +29,13 @@ enum LanguageCode {
 }
 
 model User {
-  id            String  @id @default(cuid())
-  username      String  @unique
-  email         String?
-  emailVerified Boolean @default(false)
-  imageUrl      String?
-  passwordHash  String
+  id                   String  @id @default(cuid())
+  username             String  @unique
+  email                String?
+  emailVerified        Boolean @default(false)
+  imageUrl             String?
+  passwordHash         String
+  hasCompletedTutorial Boolean @default(false)
 
   coins  Int @default(0)
   points Int @default(0)
@@ -55,11 +56,11 @@ model User {
 }
 
 model Category {
-  id        String  @id @default(cuid())
+  id        String    @id @default(cuid())
   name      String
-  slug      String  @unique
+  slug      String    @unique
   colorHex  String?
-  costCoins Int     @default(0)
+  costCoins Int       @default(0)
   isActive  Boolean   @default(true)
   isDeleted Boolean   @default(false)
   deletedAt DateTime?
@@ -77,13 +78,13 @@ model Category {
 }
 
 model Word {
-  id String @id @default(cuid())
+  id         String    @id @default(cuid())
   category   Category? @relation(fields: [categoryId], references: [id])
   categoryId String?
-  name     String  @unique
-  slug     String  @unique
-  imageUrl String?
-  isActive Boolean @default(true)
+  name       String    @unique
+  slug       String    @unique
+  imageUrl   String?
+  isActive   Boolean   @default(true)
 
   maxCoinsPerUser Int @default(10)
   coinValue       Int @default(1)

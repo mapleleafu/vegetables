@@ -8,3 +8,6 @@ export const GAME_CONFIG = {
   POINTS_PER_CORRECT_WORD: 1,
   POINTS_PER_MAXED_WORD: 1, // Points given when word is already maxed
 } as const;
+
+export const PUBLIC_ROUTES = ["/login", "/register"];
+export const IS_TUTORIAL_ON = false;
