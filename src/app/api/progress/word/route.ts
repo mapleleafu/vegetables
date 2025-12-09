@@ -48,10 +48,12 @@ export const POST = apiHandler(async (req, { params }, user) => {
   const mastered = timesCorrect >= 2;
 
   let coinsToAdd = 0;
+
+  //fix this part. `word.category?.maxCoinsPerUser` used to be in line 56
   if (isCorrect) {
     const wordCoinsLeft = word.maxCoinsPerUser - progress.coinsEarned;
     const categoryCoinsLeft =
-      (word.category?.maxCoinsPerUser || 0) -
+      word.maxCoinsPerUser -
       (categoryProgress?.coinsEarned ?? 0);
 
     if (wordCoinsLeft > 0 && categoryCoinsLeft > 0) {

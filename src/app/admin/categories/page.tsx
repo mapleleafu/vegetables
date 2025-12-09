@@ -36,7 +36,7 @@ export default async function AdminCategoriesPage({
   const [categories, totalCount] = await prisma.$transaction([
     prisma.category.findMany({
       where,
-      orderBy: { createdAt: "desc" },
+      orderBy: { name: "asc" },
       take: pageSize,
       skip: (page - 1) * pageSize,
     }),

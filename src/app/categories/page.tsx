@@ -19,7 +19,7 @@ export default async function HomePage({
 
   const where: Prisma.CategoryWhereInput = {
     isActive: true,
-    ... (query
+    ...(query
       ? {
           OR: [
             { name: { contains: query, mode: "insensitive" } },
@@ -46,7 +46,7 @@ export default async function HomePage({
   ]);
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col gap-4 p-4 pt-0">
+    <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-4">
       <Navigation items={[{ label: "Categories" }]} />
 
       <section className="grid grid-cols-1 gap-4 space-y-2">

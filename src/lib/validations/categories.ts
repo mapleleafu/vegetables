@@ -8,7 +8,6 @@ export const createCategorySchema = z.object({
     .regex(/^[a-z0-9-]+$/, "Slug must be lowercase alphanumeric with dashes"),
   parentId: z.string().nullish().nullable(),
   costCoins: z.number().int().nonnegative().default(0),
-  maxCoinsPerUser: z.number().int().nonnegative().default(0),
 });
 
 export type CreateCategoryInput = z.infer<typeof createCategorySchema>;

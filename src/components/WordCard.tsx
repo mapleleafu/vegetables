@@ -17,17 +17,17 @@ export function WordCard({ name, imageUrl, audioUrl }: WordCardProps) {
   };
 
   return (
-    <li className="relative flex flex-col items-center rounded-lg border border-white/50 bg-green-800/50 p-3">
+    <li className="relative flex flex-col items-center rounded-lg border border-[#6f514e] bg-[#90d3ee96]">
       {imageUrl ? (
         <div className="mt-2 flex w-full justify-center">
           <Image
             src={imageUrl}
             alt={name}
-            width={200}
-            height={200}
+            width={320}
+            height={320}
             onClick={playAudio}
-            className={`aspect-square rounded-md object-cover transition-transform duration-100 select-none hover:scale-105 active:scale-95 ${
-              audioUrl ? "cursor-pointer" : "cursor-default opacity-50"
+            className={`aspect-square rounded-md object-cover transition-all duration-100 select-none hover:scale-125 hover:drop-shadow-[0_0_4px_#00000095] active:scale-95 ${
+              audioUrl ? "cursor-pointer" : "cursor-default"
             }`}
           />
         </div>

@@ -41,7 +41,7 @@ export default async function AdminWordsPage({
   const [words, totalCount] = await prisma.$transaction([
     prisma.word.findMany({
       where,
-      orderBy: { createdAt: "desc" },
+      orderBy: { name: "asc" },
       take: pageSize,
       include: { translations: true },
       skip: (page - 1) * pageSize,

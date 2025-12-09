@@ -5,7 +5,6 @@ type CreateCategoryInput = {
   name: string;
   slug: string;
   costCoins: number;
-  maxCoinsPerUser: number;
 };
 
 export const categoriesApi = {

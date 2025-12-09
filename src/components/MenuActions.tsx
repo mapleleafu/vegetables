@@ -1,27 +1,27 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import AuthActions from "@/components/MenuAuthActions";
 import { ThemeToggle } from "./ThemeToggle";
 import { Separator } from "@/components/ui/separator";
 import { Shield, Home, BookOpen, UserIcon } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import Image from "next/image";
-import { Image as ImageIcon } from "lucide-react";
 import { UserSettingsDialog } from "@/components/UserSettingsDialog";
-import { prisma } from "@/lib/prisma";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { User } from "@prisma/client";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { redirect } from "next/navigation";
 
 export default async function MenuActions() {
   const session = await getServerSession(authOptions);
-  const isAdmin = session?.user?.role === "ADMIN";
+  if (!session?.user?.id) return redirect("/login");
 
-  let userData = null;
-  if (session?.user?.id) {
-    userData = await prisma.user.findUnique({
-      where: { id: session.user.id },
-    });
-  }
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+  });
+
+  if (!user) return redirect("/login");
+  const isAdmin = user.role === "ADMIN";
 
   return (
     <div className="flex h-full flex-col gap-2">
@@ -113,24 +113,20 @@ export default async function MenuActions() {
       )}
 
       <div className="mt-auto border-t pt-4">
-        {session?.user && userData && (
-          <UserSettingsDialog user={userData}>
-            <div className="hover:bg-accent hover:text-accent-foreground mb-4 flex cursor-pointer flex-row items-center justify-between rounded-md px-2 py-2 transition-colors">
-              <p className="text-md font-medium">
-                {userData.username || "User"}
-              </p>
-              <Avatar className="border-border h-10 w-10 border-2">
-                <AvatarImage
-                  src={userData?.imageUrl || ""}
-                  alt={userData?.username || "User"}
-                />
-                <AvatarFallback className="text-lg">
-                  {userData?.username?.[0]?.toUpperCase() || <UserIcon />}
-                </AvatarFallback>
-              </Avatar>
-            </div>
-          </UserSettingsDialog>
-        )}
+        <UserSettingsDialog user={user}>
+          <div className="hover:bg-accent hover:text-accent-foreground mb-4 flex cursor-pointer flex-row items-center justify-between rounded-md px-2 py-2 transition-colors">
+            <p className="text-md font-medium">{user.username || "User"}</p>
+            <Avatar className="border-border h-10 w-10 border-2">
+              <AvatarImage
+                src={user?.imageUrl || ""}
+                alt={user?.username || "User"}
+              />
+              <AvatarFallback className="text-lg">
+                {user?.username?.[0]?.toUpperCase() || <UserIcon />}
+              </AvatarFallback>
+            </Avatar>
+          </div>
+        </UserSettingsDialog>
         <AuthActions />
       </div>
     </div>

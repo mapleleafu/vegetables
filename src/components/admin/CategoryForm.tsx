@@ -40,7 +40,6 @@ export function CategoryForm({ initialData, onSuccess }: CategoryFormProps) {
       name: initialData?.name || "",
       slug: initialData?.slug || "",
       costCoins: initialData?.costCoins ?? GAME_CONFIG.DEFAULT_CATEGORY_COST,
-      maxCoinsPerUser: GAME_CONFIG.DEFAULT_MAX_COINS_PER_CATEGORY,
     },
   });
 
@@ -56,7 +55,6 @@ export function CategoryForm({ initialData, onSuccess }: CategoryFormProps) {
         name: "",
         slug: "",
         costCoins: GAME_CONFIG.DEFAULT_CATEGORY_COST,
-        maxCoinsPerUser: GAME_CONFIG.DEFAULT_MAX_COINS_PER_CATEGORY,
       });
     }
   }, [initialData, form]);
@@ -138,46 +136,24 @@ export function CategoryForm({ initialData, onSuccess }: CategoryFormProps) {
                 </FormItem>
               )}
             />
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="maxCoinsPerUser"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Max Coins / User</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        {...field}
-                        value={field.value as number | undefined}
-                        onChange={(e) => field.onChange(e.target.valueAsNumber)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="costCoins"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Cost (Coins)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        {...field}
-                        value={field.value as number | undefined}
-                        onChange={(e) => field.onChange(e.target.valueAsNumber)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="costCoins"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Cost (Coins)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      {...field}
+                      value={field.value as number | undefined}
+                      onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <div className="flex gap-2 pt-2">
               {isEditing && onSuccess && (
