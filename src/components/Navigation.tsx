@@ -8,7 +8,7 @@ interface NavigationProps {
 export function Navigation(props: NavigationProps) {
   return (
     <>
-      <header className="mb-6 flex items-center justify-between">
+      <header className="flex items-center justify-between">
         <PageBreadcrumb items={props.items} />
         <MenuButton />
       </header>

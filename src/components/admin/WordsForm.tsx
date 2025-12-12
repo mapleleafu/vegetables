@@ -108,7 +108,7 @@ export function WordsForm({ initialData, onSuccess }: WordsFormProps) {
         isActive: initialData.isActive,
         translations: initialData.translations?.length
           ? initialData.translations
-          : [{ languageCode: "tr", text: "", audioUrl: "" }],
+          : [],
       });
       setPreviewUrl(initialData.imageUrl || "");
       setImageFile(null);

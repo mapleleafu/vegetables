@@ -46,10 +46,10 @@ export default async function HomePage({
   ]);
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-4">
+    <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-4 p-4">
       <Navigation items={[{ label: "Categories" }]} />
 
-      <section className="grid grid-cols-1 gap-4 space-y-2">
+      <section className="grid grid-cols-1 gap-4 space-y-2 pt-4">
         <Search placeholder="Search name or slug..." />
 
         {categories.map((c) => (

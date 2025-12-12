@@ -69,17 +69,8 @@ export default async function RootLayout({
       <body
         className={`${inter.className} ${excalifont.variable} bg-background text-foreground antialiased`}
       >
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            backgroundImage: "url('/static/carrots.png')",
-            backgroundRepeat: "repeat",
-            backgroundSize: "contain",
-            filter: "blur(2.5px)",
-            zIndex: -1,
-          }}
-        />
+        {/* Background image */}
+        <div className="fixed inset-0 z-[-1] bg-[url('/static/carrots.png')] bg-contain bg-repeat blur-[2.5px]" />
 
         {/* Blur the edges */}
         <div className="pointer-events-none fixed inset-0 z-50 border-8 border-black blur-xl" />
