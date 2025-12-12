@@ -10,6 +10,16 @@ interface Props {
   params: Promise<{ slug: string }>;
 }
 
+// Fisher-Yates shuffle for unbiased randomization
+function shuffleArray<T>(array: T[]): T[] {
+  const newArr = [...array];
+  for (let i = newArr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+  }
+  return newArr;
+}
+
 export default async function CategoryPage({ params }: Props) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) redirect("/login");
@@ -29,13 +39,17 @@ export default async function CategoryPage({ params }: Props) {
   if (!user) redirect("/login");
 
   const allWords = await prisma.word.findMany({
-    where: {
-      categoryId: category.id,
-    },
+    where: { categoryId: category.id },
     include: { translations: true },
   });
 
-  const words = allWords.sort(() => Math.random() - 0.5);
+  // Shuffle words for the Visual Grid
+  const words = shuffleArray(allWords);
+
+  // Shuffle indices for the Question Order
+  // This ensures the first question isn't always the top-left card
+  const indices = Array.from({ length: words.length }, (_, i) => i);
+  const questionOrder = shuffleArray(indices);
 
   return (
     <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-4 p-4">
@@ -56,6 +70,7 @@ export default async function CategoryPage({ params }: Props) {
       ) : (
         <CategoryGame
           words={words}
+          questionOrder={questionOrder}
           userTargetLanguage={user.targetLanguage}
           categoryName={category.name}
           initialUserCoins={user.coins}

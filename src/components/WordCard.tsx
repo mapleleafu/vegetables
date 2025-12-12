@@ -31,7 +31,7 @@ export function WordCard({ name, imageUrl, audioUrl }: WordCardProps) {
   };
 
   return (
-    <li className="relative flex flex-col items-center rounded-lg border border-[#6f514e] bg-[#90d3ee96]">
+    <li className="relative flex flex-col items-center rounded-lg border border-[#6f514e] bg-[#ffd481]">
       {imageUrl ? (
         <div className="flex w-full justify-center">
           <Image

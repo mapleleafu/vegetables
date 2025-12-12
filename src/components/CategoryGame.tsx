@@ -1,15 +1,19 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { WordCard } from "@/components/WordCard";
 import { Button } from "@/components/ui/button";
 import { submitAnswer, startTestSession } from "@/app/actions/game";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Coins } from "@/components/ui/coins";
+import { AnimatePresence } from "framer-motion";
+import FlyingReward from "@/components/FlyingReward";
+import { CategoryComplete } from "@/components/CategoryComplete";
 
 interface CategoryGameProps {
   words: any[];
+  questionOrder: number[];
   userTargetLanguage: string;
   categoryName: string;
   categoryId: string;
@@ -18,12 +22,14 @@ interface CategoryGameProps {
 
 export function CategoryGame({
   words,
+  questionOrder,
   userTargetLanguage,
   categoryName,
   categoryId,
   initialUserCoins,
 }: CategoryGameProps) {
   const router = useRouter();
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedWordId, setSelectedWordId] = useState<string | null>(null);
   const [status, setStatus] = useState<"idle" | "correct" | "wrong">("idle");
@@ -31,7 +37,56 @@ export function CategoryGame({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sessionId, setSessionId] = useState<string>("");
 
-  const currentWord = words[currentIndex];
+  const [stats, setStats] = useState({ correct: 0, wrong: 0 });
+  const [isGameComplete, setIsGameComplete] = useState(false);
+
+  const coinRef = useRef<HTMLDivElement>(null);
+  const wordRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  const [flyAnimation, setFlyAnimation] = useState<{
+    start: {
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+      img: string | null;
+    };
+    end: { x: number; y: number };
+  } | null>(null);
+  const [triggerCoinBump, setTriggerCoinBump] = useState(false);
+
+  const currentWordIndex = questionOrder[currentIndex];
+  const currentWord = words[currentWordIndex];
+  const progress = (currentIndex / words.length) * 100;
+
+  const triggerFlyAnimation = (wordId: string, imageUrl: string | null) => {
+    const wordEl = wordRefs.current[wordId];
+    const coinEl = coinRef.current;
+
+    if (wordEl && coinEl) {
+      const startRect = wordEl.getBoundingClientRect();
+      const endRect = coinEl.getBoundingClientRect();
+
+      setFlyAnimation({
+        start: {
+          x: startRect.left,
+          y: startRect.top,
+          width: startRect.width,
+          height: startRect.height,
+          img: imageUrl,
+        },
+        end: {
+          x: endRect.left + endRect.width / 2 - 20,
+          y: endRect.top + endRect.height / 2 - 20,
+        },
+      });
+
+      setTimeout(() => {
+        setFlyAnimation(null);
+        setTriggerCoinBump(true);
+        setTimeout(() => setTriggerCoinBump(false), 300);
+      }, 800);
+    }
+  };
 
   const handleSelect = useCallback(
     (word: any, playAudio: boolean) => {
@@ -67,11 +122,17 @@ export function CategoryGame({
 
     if (isCorrect) {
       setStatus("correct");
+      setStats((prev) => ({ ...prev, correct: prev.correct + 1 }));
+
+      const word = words.find((w) => w.id === selectedWordId);
+      triggerFlyAnimation(selectedWordId, word?.imageUrl || null);
+
       const audio = new Audio("/sounds/success.mp3");
       audio.volume = 0.3;
       audio.play().catch(() => {});
     } else {
       setStatus("wrong");
+      setStats((prev) => ({ ...prev, wrong: prev.wrong + 1 }));
       const audio = new Audio("/sounds/error.mp3");
       audio.volume = 0.3;
       audio.play().catch(() => {});
@@ -87,9 +148,12 @@ export function CategoryGame({
       );
 
       if (result.status === "correct") {
-        if (result.rewardType === "coin" && result.newCoins !== undefined) {
-          setCoins(result.newCoins);
-        }
+        setTimeout(() => {
+          if (result.rewardType === "coin" && result.newCoins !== undefined) {
+            setCoins(result.newCoins);
+          }
+        }, 800);
+
         if (result.rewardType === "point" && result.message) {
           toast.info(result.message);
         }
@@ -106,6 +170,7 @@ export function CategoryGame({
     categoryId,
     currentWord.id,
     currentIndex,
+    words,
   ]);
 
   const handleNext = useCallback(() => {
@@ -114,14 +179,13 @@ export function CategoryGame({
       setStatus("idle");
       setSelectedWordId(null);
     } else {
-      toast.success("Category Completed!");
-      router.push("/categories");
+      setIsGameComplete(true);
     }
-  }, [currentIndex, words.length, router]);
+  }, [currentIndex, words.length]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (isSubmitting) return;
+      if (isSubmitting || isGameComplete) return;
 
       if (e.key === "Enter") {
         e.preventDefault();
@@ -179,6 +243,7 @@ export function CategoryGame({
   }, [
     status,
     isSubmitting,
+    isGameComplete,
     selectedWordId,
     words,
     handleConfirm,
@@ -186,21 +251,48 @@ export function CategoryGame({
     handleSelect,
   ]);
 
+  if (isGameComplete) {
+    return (
+      <CategoryComplete
+        correct={stats.correct}
+        wrong={stats.wrong}
+        coinsEarned={coins - initialUserCoins}
+      />
+    );
+  }
+
   return (
     <div className="flex flex-1 flex-col justify-center">
+      <div className="bg-darkBrown/20 mb-4 h-2 w-full overflow-hidden rounded-full">
+        <div
+          className="bg-darkBrown h-full transition-all duration-300 ease-out"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+
+      <AnimatePresence>
+        {flyAnimation && (
+          <FlyingReward start={flyAnimation.start} end={flyAnimation.end} />
+        )}
+      </AnimatePresence>
+
       <div className="relative h-0">
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 transform">
-          <Coins userCoins={coins} />
+          <Coins
+            ref={coinRef}
+            userCoins={coins}
+            triggerBump={triggerCoinBump}
+          />
         </div>
       </div>
-      <div className="border-darkBrown rounded-2xl border-[2.5px] bg-[#ccb17c] p-4 shadow-[0_0px_55px_25px_#00000040]">
-        <div className="border-darkBrown bg-lightBrown mb-4 rounded-2xl border bg-[url('/static/border.png')] bg-cover bg-center bg-no-repeat bg-blend-hard-light">
-          <h1 className="rounded-lg border border-[#3e3535] bg-transparent p-4 text-center text-3xl font-semibold shadow-[0_0px_5px_7px_#422d2b25]">
+      <div className="border-paleBrown rounded-2xl border-[2.5px] bg-[#ccb17c] bg-[url('/static/grain.png')] bg-cover bg-center bg-no-repeat p-4 bg-blend-hard-light shadow-[0_0px_55px_25px_#00000040]">
+        <div className="bg-gabs border-gabs mb-4">
+          <h1 className="border-gabs rounded-lg border bg-transparent p-4 text-center text-3xl font-semibold shadow-[0_0px_5px_7px_#422d2b25]">
             <span className="uppercase">{categoryName}</span>
           </h1>
         </div>
 
-        <ul className="grid grid-cols-4 gap-2">
+        <ul className="grid-gabs">
           {words.map((word) => {
             const isSelected = selectedWordId === word.id;
             const isCorrect = word.id === currentWord.id;
@@ -218,6 +310,9 @@ export function CategoryGame({
             return (
               <div
                 key={word.id}
+                ref={(el) => {
+                  wordRefs.current[word.id] = el;
+                }}
                 className={`cursor-pointer transition-all ${borderClass}`}
                 onClick={() => handleSelect(word, true)}
               >
@@ -250,7 +345,7 @@ export function CategoryGame({
         <div className="flex justify-center pt-4 pb-4">
           <Button
             size="lg"
-            className={`border-darkBrown w-full max-w-sm border-2 p-6 text-xl font-bold text-white capitalize ${
+            className={`border-gabs w-full max-w-sm border-2 p-6 text-xl font-bold text-white capitalize ${
               status === "correct"
                 ? "bg-green-600 hover:bg-green-700"
                 : status === "wrong"
