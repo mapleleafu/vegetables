@@ -7,7 +7,7 @@ import {
   submitAnswer,
   startTestSession,
   checkWordReward,
-  Status
+  Status,
 } from "@/app/actions/game";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -15,7 +15,6 @@ import { Coins } from "@/components/ui/coins";
 import { AnimatePresence } from "framer-motion";
 import FlyingReward from "@/components/FlyingReward";
 import { CategoryComplete } from "@/components/CategoryComplete";
-
 
 interface CategoryGameProps {
   words: any[];
@@ -309,7 +308,7 @@ export function CategoryGame({
 
       <div className="border-paleBrown relative rounded-2xl border-[2.5px] bg-[#ccb17c] bg-[url('/static/grain.png')] bg-cover bg-center bg-no-repeat p-4 bg-blend-hard-light shadow-[0_0px_55px_25px_#00000040]">
         {/* Progress Bar */}
-        <div className="border-paleBrown bg-darkBrown/20 absolute top-0 -right-6 flex h-full w-3 flex-col-reverse overflow-hidden rounded-full border-2">
+        <div className="border-paleBrown bg-darkBrown/20 absolute top-0 -right-3 flex h-full w-3 flex-col-reverse overflow-hidden rounded-full border-2 md:-right-6">
           <div
             className="bg-lightBrown w-full transition-all duration-300 ease-out"
             style={{ height: `${progress}%` }}
@@ -358,6 +357,9 @@ export function CategoryGame({
 
         <h1 className="pt-4 text-center text-3xl font-semibold">
           Which one is{" "}
+          <span className="inline md:hidden">
+            <br />
+          </span>
           <span className="text-lightBrown inline-flex capitalize">
             {currentWord.name.split("").map((char: string, index: number) => (
               <span

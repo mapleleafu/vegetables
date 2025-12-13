@@ -45,11 +45,6 @@ export default function RegisterPage() {
       <form onSubmit={handleSubmit} className="relative w-full max-w-sm">
         <Card className="border-neutral-700 bg-neutral-900">
           <CardHeader>
-            <div className="absolute top-4 left-4 text-neutral-400 transition-colors hover:text-neutral-100">
-              <Link href="/">
-                <ArrowLeft size={20} />
-              </Link>
-            </div>
             <CardTitle className="w-full text-center text-lg">
               Register
             </CardTitle>
