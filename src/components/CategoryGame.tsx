@@ -3,7 +3,12 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { WordCard } from "@/components/WordCard";
 import { Button } from "@/components/ui/button";
-import { submitAnswer, startTestSession } from "@/app/actions/game";
+import {
+  submitAnswer,
+  startTestSession,
+  checkWordReward,
+  Status
+} from "@/app/actions/game";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Coins } from "@/components/ui/coins";
@@ -11,8 +16,10 @@ import { AnimatePresence } from "framer-motion";
 import FlyingReward from "@/components/FlyingReward";
 import { CategoryComplete } from "@/components/CategoryComplete";
 
+
 interface CategoryGameProps {
   words: any[];
+  initialWordsProgress: any[];
   questionOrder: number[];
   userTargetLanguage: string;
   categoryName: string;
@@ -22,6 +29,7 @@ interface CategoryGameProps {
 
 export function CategoryGame({
   words,
+  initialWordsProgress,
   questionOrder,
   userTargetLanguage,
   categoryName,
@@ -32,10 +40,11 @@ export function CategoryGame({
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedWordId, setSelectedWordId] = useState<string | null>(null);
-  const [status, setStatus] = useState<"idle" | "correct" | "wrong">("idle");
+  const [status, setStatus] = useState<Status>("idle");
   const [coins, setCoins] = useState(initialUserCoins);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sessionId, setSessionId] = useState<string>("");
+  const [wordProgress, setWordProgress] = useState(initialWordsProgress);
 
   const [stats, setStats] = useState({ correct: 0, wrong: 0 });
   const [isGameComplete, setIsGameComplete] = useState(false);
@@ -121,11 +130,30 @@ export function CategoryGame({
     const isCorrect = selectedWordId === currentWord.id;
 
     if (isCorrect) {
+      const word = words.find((w) => w.id === selectedWordId);
+      const selectedWordProgress = wordProgress.find(
+        (w) => w.wordId === selectedWordId,
+      );
+
+      const { rewardType, message } = await checkWordReward(
+        selectedWordProgress,
+        word,
+      );
+
+      if (rewardType === "coin") {
+        triggerFlyAnimation(selectedWordId, word?.imageUrl || null);
+        setWordProgress((prev) => {
+          return prev.map((w) => {
+            if (w.wordId === selectedWordId) {
+              return { ...w, coinsEarned: w.coinsEarned + 1 };
+            }
+            return w;
+          });
+        });
+      }
+
       setStatus("correct");
       setStats((prev) => ({ ...prev, correct: prev.correct + 1 }));
-
-      const word = words.find((w) => w.id === selectedWordId);
-      triggerFlyAnimation(selectedWordId, word?.imageUrl || null);
 
       const audio = new Audio("/sounds/success.mp3");
       audio.volume = 0.3;
@@ -263,13 +291,6 @@ export function CategoryGame({
 
   return (
     <div className="flex flex-1 flex-col justify-center">
-      <div className="bg-darkBrown/20 mb-4 h-2 w-full overflow-hidden rounded-full">
-        <div
-          className="bg-darkBrown h-full transition-all duration-300 ease-out"
-          style={{ width: `${progress}%` }}
-        />
-      </div>
-
       <AnimatePresence>
         {flyAnimation && (
           <FlyingReward start={flyAnimation.start} end={flyAnimation.end} />
@@ -285,7 +306,16 @@ export function CategoryGame({
           />
         </div>
       </div>
-      <div className="border-paleBrown rounded-2xl border-[2.5px] bg-[#ccb17c] bg-[url('/static/grain.png')] bg-cover bg-center bg-no-repeat p-4 bg-blend-hard-light shadow-[0_0px_55px_25px_#00000040]">
+
+      <div className="border-paleBrown relative rounded-2xl border-[2.5px] bg-[#ccb17c] bg-[url('/static/grain.png')] bg-cover bg-center bg-no-repeat p-4 bg-blend-hard-light shadow-[0_0px_55px_25px_#00000040]">
+        {/* Progress Bar */}
+        <div className="border-paleBrown bg-darkBrown/20 absolute top-0 -right-6 flex h-full w-3 flex-col-reverse overflow-hidden rounded-full border-2">
+          <div
+            className="bg-lightBrown w-full transition-all duration-300 ease-out"
+            style={{ height: `${progress}%` }}
+          />
+        </div>
+
         <div className="bg-gabs border-gabs mb-4">
           <h1 className="border-gabs rounded-lg border bg-transparent p-4 text-center text-3xl font-semibold shadow-[0_0px_5px_7px_#422d2b25]">
             <span className="uppercase">{categoryName}</span>
@@ -356,9 +386,11 @@ export function CategoryGame({
             disabled={(!selectedWordId && status === "idle") || isSubmitting}
           >
             {status === "idle"
-              ? isSubmitting
-                ? "Checking..."
-                : "Check Answer"
+              ? !selectedWordId
+                ? "Select a Word"
+                : isSubmitting
+                  ? "Checking..."
+                  : "Check Answer"
               : "Continue"}
           </Button>
         </div>

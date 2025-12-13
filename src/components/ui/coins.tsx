@@ -26,7 +26,7 @@ export const Coins = forwardRef<HTMLDivElement, CoinsProps>(
         ref={ref}
         className={cn(
           "bg-lightBrown border-gabs flex items-center gap-2 rounded-2xl rounded-br-none rounded-bl-none border-[2.5px] border-b-0 px-4 shadow-[0_0px_5px_7px_#422d2b25] transition-all duration-200",
-          bump ? "scale-125 text-green-700" : "scale-100 text-black",
+          bump ? "scale-125 text-green-700" : "scale-100 text-white",
           className,
         )}
       >

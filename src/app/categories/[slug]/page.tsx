@@ -43,6 +43,10 @@ export default async function CategoryPage({ params }: Props) {
     include: { translations: true },
   });
 
+  const initialWordsProgress = await prisma.wordProgress.findMany({
+    where: { userId: session.user.id, word: { categoryId: category.id } },
+  });
+
   // Shuffle words for the Visual Grid
   const words = shuffleArray(allWords);
 
@@ -75,6 +79,7 @@ export default async function CategoryPage({ params }: Props) {
           categoryName={category.name}
           initialUserCoins={user.coins}
           categoryId={category.id}
+          initialWordsProgress={initialWordsProgress}
         />
       )}
     </main>

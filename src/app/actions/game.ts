@@ -4,8 +4,9 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { GAME_CONFIG } from "@/lib/constants";
-import { CoinReason, TestMode } from "@prisma/client";
+import { CoinReason, Prisma, TestMode } from "@prisma/client";
 import { NotFoundError, UnauthorizedError } from "@/lib/errors";
+import { Word, WordProgress } from "@prisma/client";
 
 export async function startTestSession(categoryId: string) {
   const session = await getServerSession(authOptions);
@@ -23,12 +24,39 @@ export async function startTestSession(categoryId: string) {
   return newSession.id;
 }
 
+export type RewardType = "coin" | "point" | "none";
+export type Status = "correct" | "wrong" | "idle" | "unauthorized";
+
 interface SubmitResult {
-  status: "correct" | "wrong" | "unauthorized";
-  rewardType?: "coin" | "point" | "none";
+  status: Status;
+  rewardType?: RewardType;
   message?: string;
   newCoins?: number;
   newPoints?: number;
+}
+
+export async function checkWordReward(wordProgress: WordProgress, word: Word) {
+  const globalWordCap =
+    word.maxCoinsPerUser || GAME_CONFIG.DEFAULT_MAX_COINS_PER_WORD;
+  const categoryModeCap = GAME_CONFIG.DEFAULT_MAX_COINS_PER_WORD_PER_CATEGORY;
+
+  const isGlobalMaxed = wordProgress.coinsEarned >= globalWordCap;
+  const isCategoryModeMaxed = wordProgress.coinsEarned >= categoryModeCap;
+
+  let rewardType: RewardType = "none";
+  let message = "";
+
+  if (isGlobalMaxed) {
+    rewardType = "point";
+    message = "Word maxed out! +1 Point";
+  } else if (isCategoryModeMaxed) {
+    rewardType = "point";
+    message = "Category coin limit reached for this word! +1 Point";
+  } else {
+    rewardType = "coin";
+  }
+
+  return { rewardType, message };
 }
 
 export async function submitAnswer(
@@ -103,26 +131,7 @@ export async function submitAnswer(
         return { status: "wrong", rewardType: "none" };
       }
 
-      const globalWordCap =
-        word.maxCoinsPerUser || GAME_CONFIG.DEFAULT_MAX_COINS_PER_WORD;
-      const categoryModeCap =
-        GAME_CONFIG.DEFAULT_MAX_COINS_PER_WORD_PER_CATEGORY;
-
-      const isGlobalMaxed = wordProgress.coinsEarned >= globalWordCap;
-      const isCategoryModeMaxed = wordProgress.coinsEarned >= categoryModeCap;
-
-      let rewardType: "coin" | "point" = "coin";
-      let message = "";
-
-      if (isGlobalMaxed) {
-        rewardType = "point";
-        message = "Word maxed out! +1 Point";
-      } else if (isCategoryModeMaxed) {
-        rewardType = "point";
-        message = "Category coin limit reached for this word! +1 Point";
-      } else {
-        rewardType = "coin";
-      }
+      const { rewardType, message } = await checkWordReward(wordProgress, word);
 
       if (rewardType === "coin") {
         await tx.user.update({
