@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import { Session } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { ApiError, ForbiddenError, UnauthorizedError } from "@/lib/errors";
 import { Prisma } from "@prisma/client";
@@ -17,7 +18,7 @@ type ResolvedContext = {
 type AuthorizedHandler = (
   req: Request,
   context: ResolvedContext,
-  user: { id: string; role: UserRole; username: string },
+  user: Session["user"],
 ) => Promise<NextResponse | any>;
 
 type PublicHandler = (
@@ -42,15 +43,11 @@ export function apiHandler(
       if (!options.isPublic) {
         const session = await getServerSession(authOptions);
 
-        if (!session?.user || !(session.user as any).id) {
+        if (!session?.user?.id) {
           throw new UnauthorizedError();
         }
 
-        const user = session.user as {
-          id: string;
-          role: UserRole;
-          username: string;
-        };
+        const user = session.user;
 
         if (options.requiredRole && user.role !== options.requiredRole) {
           throw new ForbiddenError("Insufficient permissions");
