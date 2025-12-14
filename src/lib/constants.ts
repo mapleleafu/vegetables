@@ -10,4 +10,4 @@ export const GAME_CONFIG = {
 } as const;
 
 export const PUBLIC_ROUTES = ["/login", "/register"];
-export const IS_TUTORIAL_ON = false;
+export const IS_TUTORIAL_ON = true;

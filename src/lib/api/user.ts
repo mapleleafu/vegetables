@@ -19,4 +19,9 @@ export const userApi = {
       method: "PUT",
       body: JSON.stringify(data),
     }),
+
+  completeTutorial: () =>
+    sendRequest<{ success: boolean }>("/api/user/tutorial", {
+      method: "POST",
+    }),
 };

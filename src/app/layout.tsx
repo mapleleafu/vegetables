@@ -47,7 +47,7 @@ export default async function RootLayout({
     if (session?.user?.id && !isPublicRoute && IS_TUTORIAL_ON) {
       const user = await prisma.user.findUnique({
         where: { id: session.user.id },
-        select: { hasCompletedTutorial: true },
+        select: { hasCompletedTutorial: true, targetLanguage: true },
       });
 
       if (user && !user.hasCompletedTutorial && pathname !== "/tutorial") {
