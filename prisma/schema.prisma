@@ -22,6 +22,7 @@ enum CoinReason {
   CATEGORY_UNLOCK
   ADMIN_ADJUST
   QUICK_TEST
+  TUTORIAL
 }
 
 enum LanguageCode {
