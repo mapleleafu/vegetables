@@ -1,4 +1,5 @@
 import { PasswordChangeData } from "@/lib/validations/user";
+import { RegisterInput } from "@/lib/validations/auth";
 import { sendRequest } from "@/lib/api/client";
 import { User } from "@prisma/client";
 
@@ -23,5 +24,11 @@ export const userApi = {
   completeTutorial: () =>
     sendRequest<{ success: boolean }>("/api/user/tutorial", {
       method: "POST",
+    }),
+
+  completeProfile: (username: RegisterInput["username"]) =>
+    sendRequest<{ success: boolean }>("/api/user/complete-profile", {
+      method: "POST",
+      body: JSON.stringify({ username }),
     }),
 };

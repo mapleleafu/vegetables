@@ -29,10 +29,12 @@ import { Separator } from "@/components/ui/separator";
 import { LogoutButton } from "@/components/LogoutButton";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
+import { authRegex } from "@/lib/validations/auth";
+import { SafeUser } from "@/lib/session";
 
 interface UserSettingsDialogProps {
   children: React.ReactNode;
-  user: User;
+  user: SafeUser;
 }
 
 export function UserSettingsDialog({
@@ -55,6 +57,7 @@ export function UserSettingsDialog({
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  console.log("~ user:", user);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
@@ -62,6 +65,25 @@ export function UserSettingsDialog({
       setImageFile(file);
       setPreviewUrl(URL.createObjectURL(file));
     }
+  };
+
+  const handleCurrentPasswordChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const sanitized = e.target.value.replace(authRegex.password, "");
+    setCurrentPassword(sanitized);
+  };
+
+  const handleNewPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const sanitized = e.target.value.replace(authRegex.password, "");
+    setNewPassword(sanitized);
+  };
+
+  const handleConfirmPasswordChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const sanitized = e.target.value.replace(authRegex.password, "");
+    setConfirmPassword(sanitized);
   };
 
   const handleProfileUpdate = async () => {
@@ -120,17 +142,19 @@ export function UserSettingsDialog({
         </DialogHeader>
 
         <Tabs defaultValue="general" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="general">General</TabsTrigger>
-            <TabsTrigger value="security">Security</TabsTrigger>
-          </TabsList>
+          {user.hasPassword && (
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="general">General</TabsTrigger>
+              <TabsTrigger value="security">Security</TabsTrigger>
+            </TabsList>
+          )}
 
           <TabsContent value="general" className="flex flex-col gap-4 py-2">
             <div className="flex flex-col items-center gap-4">
               <div className="relative">
                 <Avatar className="border-border h-24 w-24 border-2">
                   <AvatarImage
-                    src={previewUrl || user?.imageUrl || ""}
+                    src={previewUrl || user?.image || ""}
                     alt={user?.username || "User"}
                     className="object-cover"
                   />
@@ -185,92 +209,94 @@ export function UserSettingsDialog({
             </div>
           </TabsContent>
 
-          <TabsContent value="security" className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label htmlFor="current-password">Current Password</Label>
-              <div className="relative">
-                <Input
-                  id="current-password"
-                  className="pr-10"
-                  type={showCurrentPassword ? "text" : "password"}
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                />
+          {!user.hasPassword && (
+            <TabsContent value="security" className="space-y-4 py-2">
+              <div className="space-y-2">
+                <Label htmlFor="current-password">Current Password</Label>
+                <div className="relative">
+                  <Input
+                    id="current-password"
+                    className="pr-10"
+                    type={showCurrentPassword ? "text" : "password"}
+                    value={currentPassword}
+                    onChange={handleCurrentPasswordChange}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowCurrentPassword((s) => !s)}
+                    className="absolute top-1/2 right-2 -translate-y-1/2 p-0"
+                  >
+                    {showCurrentPassword ? (
+                      <EyeOff size={16} />
+                    ) : (
+                      <Eye size={16} />
+                    )}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="new-password">New Password</Label>
+                <div className="relative">
+                  <Input
+                    id="new-password"
+                    className="pr-10"
+                    type={showNewPassword ? "text" : "password"}
+                    value={newPassword}
+                    onChange={handleNewPasswordChange}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowNewPassword((s) => !s)}
+                    className="absolute top-1/2 right-2 -translate-y-1/2 p-0"
+                  >
+                    {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirm-password">Confirm Password</Label>
+                <div className="relative">
+                  <Input
+                    id="confirm-password"
+                    className="pr-10"
+                    type={showConfirmPassword ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={handleConfirmPasswordChange}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowConfirmPassword((s) => !s)}
+                    className="absolute top-1/2 right-2 -translate-y-1/2 p-0"
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff size={16} />
+                    ) : (
+                      <Eye size={16} />
+                    )}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-2">
                 <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setShowCurrentPassword((s) => !s)}
-                  className="absolute top-1/2 right-2 -translate-y-1/2 p-0"
+                  variant="default"
+                  onClick={handlePasswordUpdate}
+                  disabled={isLoading}
                 >
-                  {showCurrentPassword ? (
-                    <EyeOff size={16} />
-                  ) : (
-                    <Eye size={16} />
-                  )}
+                  {isLoading && <Spinner />}
+                  Update Password
                 </Button>
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="new-password">New Password</Label>
-              <div className="relative">
-                <Input
-                  id="new-password"
-                  className="pr-10"
-                  type={showNewPassword ? "text" : "password"}
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setShowNewPassword((s) => !s)}
-                  className="absolute top-1/2 right-2 -translate-y-1/2 p-0"
-                >
-                  {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </Button>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="confirm-password">Confirm Password</Label>
-              <div className="relative">
-                <Input
-                  id="confirm-password"
-                  className="pr-10"
-                  type={showConfirmPassword ? "text" : "password"}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setShowConfirmPassword((s) => !s)}
-                  className="absolute top-1/2 right-2 -translate-y-1/2 p-0"
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff size={16} />
-                  ) : (
-                    <Eye size={16} />
-                  )}
-                </Button>
-              </div>
-            </div>
-
-            <div className="flex justify-end pt-2">
-              <Button
-                variant="default"
-                onClick={handlePasswordUpdate}
-                disabled={isLoading}
-              >
-                {isLoading && <Spinner />}
-                Update Password
-              </Button>
-            </div>
-          </TabsContent>
+            </TabsContent>
+          )}
         </Tabs>
       </DialogContent>
     </Dialog>

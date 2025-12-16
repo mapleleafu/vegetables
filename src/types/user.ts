@@ -4,5 +4,5 @@ export type UserRole = "USER" | "ADMIN";
 export type UserSession = {
   id: string;
   role: UserRole;
-  username: string;
+  username: string | null;
 } & DefaultSession["user"];

@@ -44,7 +44,26 @@ export default async function RootLayout({
       redirect("/login");
     }
 
-    if (session?.user?.id && !isPublicRoute && IS_TUTORIAL_ON) {
+    if (
+      session?.user?.id &&
+      !session.user.username &&
+      pathname !== "/complete-profile"
+    ) {
+      redirect("/complete-profile");
+    } else if (
+      session?.user?.id &&
+      session.user.username &&
+      pathname === "/complete-profile"
+    ) {
+      redirect("/");
+    }
+
+    if (
+      session?.user?.id &&
+      session.user.username &&
+      !isPublicRoute &&
+      IS_TUTORIAL_ON
+    ) {
       const user = await prisma.user.findUnique({
         where: { id: session.user.id },
         select: { hasCompletedTutorial: true, targetLanguage: true },
@@ -69,13 +88,9 @@ export default async function RootLayout({
       <body
         className={`${inter.className} ${excalifont.variable} bg-background text-foreground antialiased`}
       >
-        {/* Background image */}
         <div className="fixed inset-0 z-[-1] bg-[url('/static/carrots.png')] bg-contain bg-repeat blur-[2.5px]" />
-
-        {/* Blur the edges */}
         <div className="pointer-events-none fixed inset-0 z-50 border-8 border-black blur-xl" />
 
-        {/* //TODO: add the font selection option!!! */}
         <div className="font-excali relative z-10 min-h-screen">
           <TooltipProvider>
             <Providers>
