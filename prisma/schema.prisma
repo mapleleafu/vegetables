@@ -29,23 +29,52 @@ enum LanguageCode {
   TR
 }
 
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
 model User {
-  id                   String  @id @default(cuid())
-  username             String  @unique
-  email                String?
-  emailVerified        Boolean @default(false)
-  imageUrl             String?
-  passwordHash         String
-  hasCompletedTutorial Boolean @default(false)
+  id            String    @id @default(cuid())
+  username      String?   @unique
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  passwordHash  String?
 
-  coins  Int @default(0)
-  points Int @default(0)
+  hasCompletedTutorial Boolean      @default(false)
+  coins                Int          @default(0)
+  points               Int          @default(0)
+  role                 UserRole     @default(USER)
+  targetLanguage       LanguageCode @default(TR)
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
 
-  role           UserRole     @default(USER)
-  targetLanguage LanguageCode @default(TR)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  accounts Account[]
+  sessions Session[]
 
   notes            Note[]
   focusWords       FocusWord[]
@@ -84,7 +113,7 @@ model Word {
   categoryId String?
   name       String    @unique
   slug       String    @unique
-  imageUrl   String?
+  image      String?
   isActive   Boolean   @default(true)
 
   maxCoinsPerUser Int @default(10)
