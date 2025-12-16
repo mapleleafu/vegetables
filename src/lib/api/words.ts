@@ -8,7 +8,7 @@ type CreateWordInput = {
   coinValue: number;
   maxCoinsPerUser: number;
   isActive: boolean;
-  imageUrl?: string | null;
+  image?: string | null;
   translations: {
     languageCode: string;
     text: string;

@@ -7,14 +7,13 @@ import { BadRequestError, InternalServerError } from "@/lib/errors";
 export const PUT = apiHandler(async (req, { params }, user) => {
   const formData = await req.formData();
   const targetLanguage = formData.get("targetLanguage") as any;
-  const image = formData.get("image") as File | null;
+  const imageFile = formData.get("image") as File | null;
+  let image = undefined;
 
-  let imageUrl = undefined;
-
-  if (image) {
+  if (imageFile) {
     const filename = `${user.id}`;
     try {
-      imageUrl = await uploadFile(image, filename, "images", "avatars");
+      image = await uploadFile(imageFile, filename, "images", "avatars");
     } catch (error) {
       console.error("Upload failed:", error);
       throw new BadRequestError("Image upload failed");
@@ -26,7 +25,7 @@ export const PUT = apiHandler(async (req, { params }, user) => {
       where: { id: user.id },
       data: {
         targetLanguage: targetLanguage || undefined,
-        imageUrl: imageUrl || undefined,
+        image: image || undefined,
       },
     });
     return NextResponse.json(updatedUser);

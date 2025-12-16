@@ -13,7 +13,7 @@ export const POST = apiHandler(
         categoryId: data.categoryId || null,
         name: data.name,
         slug: data.slug,
-        imageUrl: data.imageUrl || null,
+        image: data.image || null,
         coinValue: data.coinValue,
         maxCoinsPerUser: data.maxCoinsPerUser,
         translations: {

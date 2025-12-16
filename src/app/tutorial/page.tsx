@@ -19,7 +19,7 @@ export default async function TutorialPage() {
 
   const helloWord = await prisma.word.findUnique({
     where: { name: "hello" },
-    select: { translations: true, imageUrl: true },
+    select: { translations: true, image: true },
   });
 
   const targetLanguage =

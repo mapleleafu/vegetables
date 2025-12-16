@@ -25,7 +25,7 @@ export const GET = apiHandler(async (req, { params }, user) => {
     return {
       id: w.id,
       slug: w.slug,
-      imageUrl: w.imageUrl,
+      image: w.image,
       translations: w.translations,
       progress: progress
         ? {

@@ -19,7 +19,7 @@ import type { WordTranslation } from "@prisma/client";
 
 interface TutorialProps {
   targetLanguage: LanguageCode;
-  helloWord?: { translations: WordTranslation[]; imageUrl: string | null };
+  helloWord?: { translations: WordTranslation[]; image: string | null };
 }
 
 function TutorialIntro({
@@ -69,7 +69,7 @@ function TutorialGame({
 }: {
   targetLanguage: LanguageCode;
   onComplete: () => Promise<void>;
-  helloWord?: { translations: WordTranslation[]; imageUrl: string | null };
+  helloWord?: { translations: WordTranslation[]; image: string | null };
 }) {
   const [selected, setSelected] = useState(false);
   const [status, setStatus] = useState<"idle" | "correct">("idle");
@@ -84,7 +84,7 @@ function TutorialGame({
   const mockWord = {
     id: "tutorial-1",
     name: "Hello",
-    imageUrl: helloWord?.imageUrl || "",
+    image: helloWord?.image || "",
     audioUrl: helloWordTranslation?.audioUrl || "",
   };
 
@@ -142,7 +142,7 @@ function TutorialGame({
           >
             <WordCard
               name={mockWord.name}
-              imageUrl={mockWord.imageUrl}
+              image={mockWord.image}
               audioUrl={mockWord.audioUrl}
             />
           </div>

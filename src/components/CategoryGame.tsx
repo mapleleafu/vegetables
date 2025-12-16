@@ -9,12 +9,13 @@ import {
   checkWordReward,
   Status,
 } from "@/app/actions/game";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Coins } from "@/components/ui/coins";
 import { AnimatePresence } from "framer-motion";
 import FlyingReward from "@/components/FlyingReward";
 import { CategoryComplete } from "@/components/CategoryComplete";
+import Screws from "@/components/ui/screws";
+import Shadow from "@/components/ui/shadow";
 
 interface CategoryGameProps {
   words: any[];
@@ -35,8 +36,6 @@ export function CategoryGame({
   categoryId,
   initialUserCoins,
 }: CategoryGameProps) {
-  const router = useRouter();
-
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedWordId, setSelectedWordId] = useState<string | null>(null);
   const [status, setStatus] = useState<Status>("idle");
@@ -66,7 +65,7 @@ export function CategoryGame({
   const currentWord = words[currentWordIndex];
   const progress = (currentIndex / words.length) * 100;
 
-  const triggerFlyAnimation = (wordId: string, imageUrl: string | null) => {
+  const triggerFlyAnimation = (wordId: string, image: string | null) => {
     const wordEl = wordRefs.current[wordId];
     const coinEl = coinRef.current;
 
@@ -80,7 +79,7 @@ export function CategoryGame({
           y: startRect.top,
           width: startRect.width,
           height: startRect.height,
-          img: imageUrl,
+          img: image,
         },
         end: {
           x: endRect.left + endRect.width / 2 - 20,
@@ -130,17 +129,17 @@ export function CategoryGame({
 
     if (isCorrect) {
       const word = words.find((w) => w.id === selectedWordId);
+
       const selectedWordProgress = wordProgress.find(
         (w) => w.wordId === selectedWordId,
       );
-
       const { rewardType, message } = await checkWordReward(
         selectedWordProgress,
         word,
       );
 
       if (rewardType === "coin") {
-        triggerFlyAnimation(selectedWordId, word?.imageUrl || null);
+        triggerFlyAnimation(selectedWordId, word?.image || null);
         setWordProgress((prev) => {
           return prev.map((w) => {
             if (w.wordId === selectedWordId) {
@@ -298,6 +297,8 @@ export function CategoryGame({
 
       <div className="relative h-0">
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 transform">
+          <Shadow opacity="25" />
+          <Screws variant="sides" size="sm" />
           <Coins
             ref={coinRef}
             userCoins={coins}
@@ -307,6 +308,8 @@ export function CategoryGame({
       </div>
 
       <div className="border-paleBrown relative rounded-2xl border-[2.5px] bg-[#ccb17c] bg-[url('/static/grain.png')] bg-cover bg-center bg-no-repeat p-4 bg-blend-hard-light shadow-[0_0px_55px_25px_#00000040]">
+        <Shadow opacity="30" />
+        <Screws />
         {/* Progress Bar */}
         <div className="border-paleBrown bg-darkBrown/20 absolute top-0 -right-3 flex h-full w-3 flex-col-reverse overflow-hidden rounded-full border-2 md:-right-6">
           <div
@@ -315,7 +318,8 @@ export function CategoryGame({
           />
         </div>
 
-        <div className="bg-gabs border-gabs mb-4">
+        <div className="bg-gabs border-gabs relative mb-4">
+          <Screws size="sm" />
           <h1 className="border-gabs rounded-lg border bg-transparent p-4 text-center text-3xl font-semibold shadow-[0_0px_5px_7px_#422d2b25]">
             <span className="uppercase">{categoryName}</span>
           </h1>
@@ -326,15 +330,21 @@ export function CategoryGame({
             const isSelected = selectedWordId === word.id;
             const isCorrect = word.id === currentWord.id;
 
-            let borderClass = "border-transparent";
-            if (status === "idle" && isSelected)
-              borderClass = "ring-4 ring-lightBrown rounded-lg";
-            if (status === "correct" && isCorrect)
-              borderClass = "ring-4 ring-green-500 rounded-lg";
-            if (status === "wrong" && isSelected)
-              borderClass = "ring-4 ring-red-400 rounded-lg";
-            if (status === "wrong" && isCorrect)
-              borderClass = "ring-4 ring-green-400 rounded-lg";
+            let statusEffect = "";
+
+            if (status === "idle" && isSelected) {
+              statusEffect =
+                "drop-shadow-[0_0_15px_theme('colors.lightBrown')] z-10 scale-115";
+            } else if (status === "correct" && isCorrect) {
+              statusEffect =
+                "drop-shadow-[0_0_15px_theme('colors.green.500')] z-10 scale-115";
+            } else if (status === "wrong" && isSelected) {
+              statusEffect =
+                "drop-shadow-[0_0_15px_theme('colors.red.400')] z-10 scale-115";
+            } else if (status === "wrong" && isCorrect) {
+              statusEffect =
+                "drop-shadow-[0_0_15px_theme('colors.green.400')] z-10 scale-115";
+            }
 
             return (
               <div
@@ -342,13 +352,14 @@ export function CategoryGame({
                 ref={(el) => {
                   wordRefs.current[word.id] = el;
                 }}
-                className={`cursor-pointer transition-all ${borderClass}`}
+                className={`cursor-pointer transition-all duration-200 ${statusEffect}`}
                 onClick={() => handleSelect(word, true)}
               >
                 <WordCard
                   name={word.name}
-                  imageUrl={word.imageUrl}
+                  image={word.image}
                   audioUrl={null}
+                  isActive={!!statusEffect}
                 />
               </div>
             );
@@ -377,7 +388,7 @@ export function CategoryGame({
         <div className="flex justify-center pt-4 pb-4">
           <Button
             size="lg"
-            className={`border-gabs w-full max-w-sm border-2 p-6 text-xl font-bold text-white capitalize ${
+            className={`border-gabs relative w-full max-w-sm border-2 p-6 text-xl font-bold text-white capitalize ${
               status === "correct"
                 ? "bg-green-600 hover:bg-green-700"
                 : status === "wrong"
@@ -387,6 +398,8 @@ export function CategoryGame({
             onClick={status === "idle" ? handleConfirm : handleNext}
             disabled={(!selectedWordId && status === "idle") || isSubmitting}
           >
+            <Screws size="sm" />
+
             {status === "idle"
               ? !selectedWordId
                 ? "Select a Word"

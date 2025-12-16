@@ -71,9 +71,9 @@ export default async function AdminWordsPage({
                   className="h-auto w-full justify-between py-2"
                 >
                   <div className="text-sm font-medium">{word.name}</div>
-                  {word.imageUrl ? (
+                  {word.image ? (
                     <Image
-                      src={word.imageUrl}
+                      src={word.image}
                       alt={word.name}
                       width={30}
                       height={30}

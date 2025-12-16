@@ -6,19 +6,16 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { UserSettingsDialog } from "@/components/UserSettingsDialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import { getCurrentUserSafe } from "@/lib/session";
 
 export default async function MenuActions() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return redirect("/login");
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-  });
+  const user = await getCurrentUserSafe();
 
   if (!user) return redirect("/login");
   const isAdmin = user.role === "ADMIN";
@@ -118,7 +115,7 @@ export default async function MenuActions() {
             <p className="text-md font-medium">{user.username || "User"}</p>
             <Avatar className="border-border h-10 w-10 border-2">
               <AvatarImage
-                src={user?.imageUrl || ""}
+                src={user?.image || ""}
                 alt={user?.username || "User"}
               />
               <AvatarFallback className="text-lg">

@@ -14,7 +14,7 @@ export const createWordSchema = z.object({
     .string()
     .min(1, "Slug is required")
     .regex(/^[a-z0-9-]+$/, "Slug must be lowercase alphanumeric with dashes"),
-  imageUrl: z.string().url("Invalid image URL").nullish().or(z.literal("")),
+  image: z.string().url("Invalid image URL").nullish().or(z.literal("")),
   coinValue: z.number().int().min(0).default(1),
   maxCoinsPerUser: z.number().int().min(0).default(1),
   translations: z.array(translationSchema).default([]),

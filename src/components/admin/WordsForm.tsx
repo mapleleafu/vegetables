@@ -64,7 +64,7 @@ export function WordsForm({ initialData, onSuccess }: WordsFormProps) {
   const isEditing = !!initialData;
   const [categories, setCategories] = useState<Category[]>([]);
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState(initialData?.imageUrl || "");
+  const [previewUrl, setPreviewUrl] = useState(initialData?.image || "");
   const [loading, setLoading] = useState(false);
 
   const [audioFiles, setAudioFiles] = useState<Record<number, File>>({});
@@ -75,7 +75,7 @@ export function WordsForm({ initialData, onSuccess }: WordsFormProps) {
       categoryId: initialData?.categoryId || undefined,
       name: initialData?.name || "",
       slug: initialData?.slug || "",
-      imageUrl: initialData?.imageUrl || "",
+      image: initialData?.image || "",
       coinValue: initialData?.coinValue ?? GAME_CONFIG.POINTS_PER_CORRECT_WORD,
       maxCoinsPerUser:
         initialData?.maxCoinsPerUser ?? GAME_CONFIG.DEFAULT_MAX_COINS_PER_WORD,
@@ -102,7 +102,7 @@ export function WordsForm({ initialData, onSuccess }: WordsFormProps) {
         categoryId: initialData.categoryId || null,
         name: initialData.name,
         slug: initialData.slug,
-        imageUrl: initialData.imageUrl || "",
+        image: initialData.image || "",
         coinValue: initialData.coinValue,
         maxCoinsPerUser: initialData.maxCoinsPerUser,
         isActive: initialData.isActive,
@@ -110,7 +110,7 @@ export function WordsForm({ initialData, onSuccess }: WordsFormProps) {
           ? initialData.translations
           : [],
       });
-      setPreviewUrl(initialData.imageUrl || "");
+      setPreviewUrl(initialData.image || "");
       setImageFile(null);
       setAudioFiles({});
     }
@@ -174,7 +174,7 @@ export function WordsForm({ initialData, onSuccess }: WordsFormProps) {
       const payload = {
         ...values,
         slug: finalSlug,
-        imageUrl: finalImageUrl || null,
+        image: finalImageUrl || null,
         coinValue: Number(values.coinValue),
         maxCoinsPerUser: Number(values.maxCoinsPerUser),
         translations: processedTranslations,
