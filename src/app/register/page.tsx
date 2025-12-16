@@ -1,9 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { useState } from "react";
-import { ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -15,13 +14,26 @@ import {
   CardTitle,
   CardContent,
   CardFooter,
+  CardDescription,
 } from "@/components/ui/card";
+import OAuth from "@/components/OAuth";
+import { authRegex } from "@/lib/validations/auth";
 
 export default function RegisterPage() {
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+
+  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const sanitized = e.target.value.replace(authRegex.username, "");
+    setUsername(sanitized);
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const sanitized = e.target.value.replace(authRegex.password, "");
+    setPassword(sanitized);
+  };
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -43,11 +55,14 @@ export default function RegisterPage() {
   return (
     <main className="flex min-h-screen items-center justify-center p-4">
       <form onSubmit={handleSubmit} className="relative w-full max-w-sm">
-        <Card className="border-neutral-700 bg-neutral-900">
+        <Card>
           <CardHeader>
-            <CardTitle className="w-full text-center text-lg">
-              Register
+            <CardTitle className="w-full text-center text-2xl">
+              Create your account
             </CardTitle>
+            <CardDescription className="w-full text-center text-sm">
+              Fill in the form below to create your account
+            </CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-4 px-6">
@@ -57,7 +72,7 @@ export default function RegisterPage() {
                 id="username"
                 className="w-full"
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={handleUsernameChange}
               />
             </div>
 
@@ -69,7 +84,7 @@ export default function RegisterPage() {
                   className="pr-10"
                   type={showPassword ? "text" : "password"}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={handlePasswordChange}
                 />
                 <Button
                   type="button"
@@ -82,20 +97,20 @@ export default function RegisterPage() {
                 </Button>
               </div>
             </div>
-          </CardContent>
 
-          <CardFooter className="flex flex-col gap-2 px-6">
             <Button type="submit" className="w-full">
               Create account
             </Button>
-            <Button
-              type="button"
-              onClick={handleLogin}
-              variant="secondary"
-              className="w-full"
-            >
-              Already have an account
-            </Button>
+
+            <OAuth />
+          </CardContent>
+          <CardFooter className="flex flex-col gap-2 px-6">
+            <CardDescription className="px-6 text-center">
+              Already have an account?{" "}
+              <span className="cursor-pointer underline" onClick={handleLogin}>
+                Sign in
+              </span>
+            </CardDescription>
           </CardFooter>
         </Card>
       </form>

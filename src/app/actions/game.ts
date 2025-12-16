@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { GAME_CONFIG } from "@/lib/constants";
-import { CoinReason, Prisma, TestMode } from "@prisma/client";
+import { CoinReason, TestMode } from "@prisma/client";
 import { NotFoundError, UnauthorizedError } from "@/lib/errors";
 import { Word, WordProgress } from "@prisma/client";
 
@@ -40,8 +40,8 @@ export async function checkWordReward(wordProgress: WordProgress, word: Word) {
     word.maxCoinsPerUser || GAME_CONFIG.DEFAULT_MAX_COINS_PER_WORD;
   const categoryModeCap = GAME_CONFIG.DEFAULT_MAX_COINS_PER_WORD_PER_CATEGORY;
 
-  const isGlobalMaxed = wordProgress.coinsEarned >= globalWordCap;
-  const isCategoryModeMaxed = wordProgress.coinsEarned >= categoryModeCap;
+  const isGlobalMaxed = wordProgress?.coinsEarned >= globalWordCap;
+  const isCategoryModeMaxed = wordProgress?.coinsEarned >= categoryModeCap;
 
   let rewardType: RewardType = "none";
   let message = "";
