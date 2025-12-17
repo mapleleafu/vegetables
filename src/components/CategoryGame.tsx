@@ -164,6 +164,8 @@ export function CategoryGame({
       audio.play().catch(() => {});
     }
 
+    setIsSubmitting(false);
+
     try {
       const result = await submitAnswer(
         activeSessionId,
@@ -186,8 +188,6 @@ export function CategoryGame({
       }
     } catch (error) {
       toast.error("Something went wrong saving your progress.");
-    } finally {
-      setIsSubmitting(false);
     }
   }, [
     selectedWordId,
@@ -371,16 +371,19 @@ export function CategoryGame({
           <span className="inline md:hidden">
             <br />
           </span>
-          <span className="text-lightBrown inline-flex capitalize">
-            {currentWord.translations[0]?.text.split("").map((char: string, index: number) => (
-              <span
-                key={index}
-                className="animate-wave"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                {char === " " ? "\u00A0" : char}
-              </span>
-            ))}
+          <span className="text-lightBrown inline-flex">
+            {currentWord.translations[0]?.text
+              .toLocaleUpperCase("tr-TR")
+              .split("")
+              .map((char: string, index: number) => (
+                <span
+                  key={index}
+                  className="animate-wave"
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                >
+                  {char === " " ? "\u00A0" : char}
+                </span>
+              ))}
           </span>
           ?
         </h1>
@@ -396,7 +399,7 @@ export function CategoryGame({
                   : "bg-lightBrown hover:bg-[#5a3e3b]"
             }`}
             onClick={status === "idle" ? handleConfirm : handleNext}
-            disabled={!selectedWordId || isSubmitting}
+            disabled={!selectedWordId && status === "idle"}
           >
             <Screws size="sm" />
 
