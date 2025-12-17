@@ -308,7 +308,7 @@ export function CategoryGame({
       </div>
 
       <div className="border-paleBrown relative rounded-2xl border-[2.5px] bg-[#ccb17c] bg-[url('/static/grain.png')] bg-cover bg-center bg-no-repeat p-4 bg-blend-hard-light shadow-[0_0px_55px_25px_#00000040]">
-        <Shadow opacity="30" />
+        <Shadow opacity="20" />
         <Screws />
         {/* Progress Bar */}
         <div className="border-paleBrown bg-darkBrown/20 absolute top-0 -right-3 flex h-full w-3 flex-col-reverse overflow-hidden rounded-full border-2 md:-right-6">
@@ -396,7 +396,7 @@ export function CategoryGame({
                   : "bg-lightBrown hover:bg-[#5a3e3b]"
             }`}
             onClick={status === "idle" ? handleConfirm : handleNext}
-            disabled={(!selectedWordId && status === "idle") || isSubmitting}
+            disabled={!selectedWordId || isSubmitting}
           >
             <Screws size="sm" />
 
