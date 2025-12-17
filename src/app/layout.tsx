@@ -11,6 +11,7 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { PUBLIC_ROUTES, IS_TUTORIAL_ON } from "@/lib/constants";
 import { excalifont } from "@/lib/fonts";
+import { Analytics } from "@vercel/analytics/next"
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -99,6 +100,7 @@ export default async function RootLayout({
             </Providers>
           </TooltipProvider>
         </div>
+        <Analytics />
       </body>
     </html>
   );
