@@ -39,7 +39,12 @@ export default async function CategoryPage({ params }: Props) {
   if (!user) redirect("/login");
 
   const allWords = await prisma.word.findMany({
-    where: { categoryId: category.id },
+    where: {
+      categoryId: category.id,
+      translations: {
+        some: { languageCode: user.targetLanguage, audioUrl: { not: null } },
+      },
+    },
     include: { translations: true },
   });
 

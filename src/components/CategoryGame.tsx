@@ -372,7 +372,7 @@ export function CategoryGame({
             <br />
           </span>
           <span className="text-lightBrown inline-flex capitalize">
-            {currentWord.name.split("").map((char: string, index: number) => (
+            {currentWord.translations[0]?.text.split("").map((char: string, index: number) => (
               <span
                 key={index}
                 className="animate-wave"
