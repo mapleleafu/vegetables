@@ -6,6 +6,7 @@ export const GAME_CONFIG = {
 
   // Rewards
   POINTS_PER_CORRECT_WORD: 1,
+  POINTS_PER_GLOBAL_MAX_WORD: 1, // Points given when word is globally maxed
   POINTS_PER_MAXED_WORD: 1, // Points given when word is already maxed
 } as const;
 

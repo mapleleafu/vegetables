@@ -117,6 +117,7 @@ export function CategoryGame({
     const selectedWordProgress = wordProgress.find(
       (w) => w.wordId === selectedWordId,
     );
+    const isLastWord = currentIndex === words.length - 1;
 
     if (isCorrect) {
       setStatus("correct");
@@ -165,6 +166,7 @@ export function CategoryGame({
       categoryId,
       isCorrect,
       currentIndex,
+      isLastWord,
     ).catch(() => {
       toast.error("Failed to save progress");
     });

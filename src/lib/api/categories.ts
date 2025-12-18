@@ -26,4 +26,9 @@ export const categoriesApi = {
       method: "PUT",
       body: JSON.stringify(data),
     }),
+
+  unlock: (id: string) =>
+    sendRequest<Category>(`/api/categories/${id}/unlock`, {
+      method: "POST",
+    }),
 };

@@ -7,6 +7,11 @@ import { TestMode } from "@prisma/client";
 import { NotFoundError, UnauthorizedError } from "@/lib/errors";
 import { WordProgress } from "@prisma/client";
 import { checkWordReward, RewardType, Status } from "@/lib/gameUtilts";
+import { GAME_CONFIG } from "@/lib/constants";
+
+const POINTS_PER_CORRECT_WORD = GAME_CONFIG.POINTS_PER_CORRECT_WORD;
+const POINTS_PER_MAXED_WORD = GAME_CONFIG.POINTS_PER_MAXED_WORD;
+const POINTS_PER_GLOBAL_MAX_WORD = GAME_CONFIG.POINTS_PER_GLOBAL_MAX_WORD;
 
 export async function startTestSession(categoryId: string) {
   const session = await getServerSession(authOptions);
@@ -38,6 +43,7 @@ export async function submitAnswer(
   categoryId: string,
   isCorrect: boolean,
   orderIndex: number,
+  isLastWord: boolean,
 ): Promise<SubmitResult> {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return { status: "unauthorized" };
@@ -63,9 +69,35 @@ export async function submitAnswer(
   const reward = checkWordReward(existingWordProgress as WordProgress, word);
   const shouldGiveCoin = isCorrect && reward.rewardType === "coin";
   const shouldGivePoint = isCorrect && reward.rewardType === "point";
+  const pointReason = reward?.pointReason;
 
   await prisma.$transaction(async (tx) => {
     const promises: Promise<any>[] = [];
+
+    if (existingCategoryProgress) {
+      promises.push(
+        tx.categoryProgress.update({
+          where: { id: existingCategoryProgress.id },
+          data: {
+            coinsEarned: shouldGiveCoin
+              ? { increment: word.coinValue }
+              : undefined,
+            lastTestedAt: new Date(),
+          },
+        }),
+      );
+    } else {
+      promises.push(
+        tx.categoryProgress.create({
+          data: {
+            userId,
+            categoryId,
+            coinsEarned: shouldGiveCoin ? word.coinValue : 0,
+            lastTestedAt: new Date(),
+          },
+        }),
+      );
+    }
 
     if (existingWordProgress) {
       promises.push(
@@ -92,6 +124,7 @@ export async function submitAnswer(
             timesCorrect: isCorrect ? 1 : 0,
             timesIncorrect: !isCorrect ? 1 : 0,
             coinsEarned: shouldGiveCoin ? word.coinValue : 0,
+            lastTestedAt: new Date(),
           },
         }),
       );
@@ -111,6 +144,7 @@ export async function submitAnswer(
               orderIndex,
             },
           },
+          completedAt: isLastWord ? new Date() : undefined,
         },
       }),
     );
@@ -130,22 +164,26 @@ export async function submitAnswer(
           },
         }),
       );
-
-      if (existingCategoryProgress) {
-        promises.push(
-          tx.categoryProgress.update({
-            where: { id: existingCategoryProgress.id },
-            data: { coinsEarned: { increment: word.coinValue } },
-          }),
-        );
-      }
     }
 
     if (shouldGivePoint) {
       promises.push(
         tx.user.update({
           where: { id: userId },
-          data: { points: { increment: 10 } },
+          data: {
+            points: {
+              increment: (() => {
+                switch (pointReason) {
+                  case "globalMax":
+                    return POINTS_PER_MAXED_WORD;
+                  case "categoryMax":
+                    return POINTS_PER_GLOBAL_MAX_WORD;
+                  default:
+                    return POINTS_PER_CORRECT_WORD;
+                }
+              })(),
+            },
+          },
         }),
       );
     }

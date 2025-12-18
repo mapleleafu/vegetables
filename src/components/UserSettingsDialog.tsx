@@ -207,7 +207,7 @@ export function UserSettingsDialog({
             </div>
           </TabsContent>
 
-          {!user.hasPassword && (
+          {user.hasPassword && (
             <TabsContent value="security" className="space-y-4 py-2">
               <div className="space-y-2">
                 <Label htmlFor="current-password">Current Password</Label>

@@ -47,7 +47,7 @@ export default function CompleteProfilePage() {
 
       toast.success("Profile completed!");
       setIsLoading(false);
-      router.push("/");
+      window.location.href = "/";
     } catch (err: any) {
       toast.error(err.message || "Failed to update profile");
       setIsLoading(false);
