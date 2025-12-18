@@ -3,7 +3,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { Tutorial } from "@/components/Tutorial";
-import { LanguageCode, DEFAULT_LANGUAGE_CODE } from "@/types/word";
+import { LanguageCode, DEFAULT_LANGUAGE_CODE } from "@/types/language";
 
 export default async function TutorialPage() {
   const session = await getServerSession(authOptions);

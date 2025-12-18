@@ -14,7 +14,7 @@ import {
   LANGUAGE_WELCOME,
   LanguageCode,
   DEFAULT_LANGUAGE_CODE,
-} from "@/types/word";
+} from "@/types/language";
 import type { WordTranslation } from "@prisma/client";
 
 interface TutorialProps {

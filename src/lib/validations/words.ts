@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { LANGUAGE_CODES } from "@/types/word";
+import { LANGUAGE_CODES } from "@/types/language";
 
 const translationSchema = z.object({
   languageCode: z.enum(LANGUAGE_CODES),

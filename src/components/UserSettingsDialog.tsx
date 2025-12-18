@@ -23,8 +23,7 @@ import {
 } from "@/components/ui/select";
 import { Camera, User as UserIcon, Eye, EyeOff } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
-import { User } from "@prisma/client";
-import { LANGUAGE_NAMES } from "@/types/word";
+import { LANGUAGE_NAMES } from "@/types/language";
 import { Separator } from "@/components/ui/separator";
 import { LogoutButton } from "@/components/LogoutButton";
 import { toast } from "sonner";

@@ -31,7 +31,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { createWordSchema } from "@/lib/validations/words";
 import { AudioRecorder } from "@/components/ui/audio-recorder";
-import { LANGUAGE_CODES, LANGUAGE_NAMES } from "@/types/word";
+import { LANGUAGE_CODES, LANGUAGE_NAMES } from "@/types/language";
 import {
   Tooltip,
   TooltipContent,
