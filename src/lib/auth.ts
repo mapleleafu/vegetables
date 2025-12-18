@@ -43,6 +43,7 @@ export const authOptions: NextAuthOptions = {
           id: user.id,
           username: user.username,
           role: user.role,
+          targetLanguage: user.targetLanguage,
         };
       },
     }),
@@ -56,6 +57,7 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.role = user.role;
         token.username = (user as any).username;
+        token.targetLanguage = (user as any).targetLanguage;
       }
 
       if (trigger === "update" && session?.username) {
@@ -68,6 +70,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id;
         session.user.role = token.role;
         session.user.username = token.username as string | null;
+        session.user.targetLanguage = token.targetLanguage;
       }
       return session;
     },

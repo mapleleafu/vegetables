@@ -6,9 +6,8 @@ import { Button } from "@/components/ui/button";
 import {
   submitAnswer,
   startTestSession,
-  checkWordReward,
-  Status,
 } from "@/app/actions/game";
+import { checkWordReward, Status } from "@/lib/gameUtilts";
 import { toast } from "sonner";
 import { Coins } from "@/components/ui/coins";
 import { AnimatePresence } from "framer-motion";
@@ -92,7 +91,7 @@ export function CategoryGame({
         setFlyAnimation(null);
         setTriggerCoinBump(true);
         setTimeout(() => setTriggerCoinBump(false), 300);
-      }, 800);
+      }, flyingDuration * 1000);
     }
   };
 
@@ -113,89 +112,72 @@ export function CategoryGame({
     if (!selectedWordId || isSubmitting) return;
     setIsSubmitting(true);
 
-    let activeSessionId = sessionId;
-
-    try {
-      if (!activeSessionId) {
-        activeSessionId = await startTestSession(categoryId);
-        setSessionId(activeSessionId);
-      }
-    } catch (e) {
-      toast.error("Could not start game session");
-      setIsSubmitting(false);
-      return;
-    }
-
     const isCorrect = selectedWordId === currentWord.id;
+    const word = words.find((w) => w.id === selectedWordId);
+    const selectedWordProgress = wordProgress.find(
+      (w) => w.wordId === selectedWordId,
+    );
 
     if (isCorrect) {
-      const word = words.find((w) => w.id === selectedWordId);
+      setStatus("correct");
+      setStats((prev) => ({ ...prev, correct: prev.correct + 1 }));
 
-      const selectedWordProgress = wordProgress.find(
-        (w) => w.wordId === selectedWordId,
-      );
-      const { rewardType, message } = await checkWordReward(
+      const { rewardType, message } = checkWordReward(
         selectedWordProgress,
         word,
       );
 
       if (rewardType === "coin") {
         triggerFlyAnimation(selectedWordId, word?.image || null);
-        setTimeout(() => {
-          setCoins((prev) => prev + 1);
-        }, flyingDuration * 1000);
+        setTimeout(() => setCoins((prev) => prev + 1), flyingDuration * 1000);
 
-        setWordProgress((prev) => {
-          return prev.map((w) => {
-            if (w.wordId === selectedWordId) {
-              return { ...w, coinsEarned: w.coinsEarned + 1 };
-            }
-            return w;
-          });
-        });
+        setWordProgress((prev) =>
+          prev.map((w) =>
+            w.wordId === selectedWordId
+              ? { ...w, coinsEarned: (w.coinsEarned || 0) + 1 }
+              : w,
+          ),
+        );
       }
 
-      setStatus("correct");
-      setStats((prev) => ({ ...prev, correct: prev.correct + 1 }));
-
-      const audio = new Audio("/sounds/success.mp3");
-      audio.volume = 0.3;
-      audio.play().catch(() => {});
+      new Audio("/sounds/success.mp3").play().catch(() => {});
     } else {
       setStatus("wrong");
       setStats((prev) => ({ ...prev, wrong: prev.wrong + 1 }));
-      const audio = new Audio("/sounds/error.mp3");
-      audio.volume = 0.3;
-      audio.play().catch(() => {});
+      new Audio("/sounds/error.mp3").play().catch(() => {});
     }
+
+    let activeSessionId = sessionId;
+    if (!activeSessionId) {
+      try {
+        activeSessionId = await startTestSession(categoryId);
+        setSessionId(activeSessionId);
+      } catch (e) {
+        toast.error("Connection failed");
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
+    submitAnswer(
+      activeSessionId,
+      selectedWordId,
+      categoryId,
+      isCorrect,
+      currentIndex,
+    ).catch(() => {
+      toast.error("Failed to save progress");
+    });
 
     setIsSubmitting(false);
-
-    try {
-      const result = await submitAnswer(
-        activeSessionId,
-        selectedWordId,
-        categoryId,
-        isCorrect,
-        currentIndex,
-      );
-
-      if (result.status === "correct") {
-        if (result.rewardType === "point" && result.message) {
-          toast.info(result.message);
-        }
-      }
-    } catch (error) {
-      toast.error("Something went wrong saving your progress.");
-    }
   }, [
     selectedWordId,
     isSubmitting,
     sessionId,
     categoryId,
-    currentWord.id,
-    currentIndex,
+    currentWord,
     words,
+    wordProgress,
   ]);
 
   const handleNext = useCallback(() => {

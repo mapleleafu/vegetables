@@ -6,12 +6,16 @@ import { Badge } from "@/components/ui/badge";
 import { PaginationWithLinks } from "@/components/ui/pagination-with-links";
 import { Search } from "@/components/ui/search";
 import { Prisma } from "@prisma/client";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { DEFAULT_LANGUAGE_CODE } from "@/types/language";
 
 export default async function HomePage({
   searchParams,
 }: {
   searchParams: Promise<{ page?: string; query?: string }>;
 }) {
+  const session = await getServerSession(authOptions);
   const params = await searchParams;
   const page = parseInt(params.page || "1");
   const query = params.query || "";
@@ -19,11 +23,32 @@ export default async function HomePage({
 
   const where: Prisma.CategoryWhereInput = {
     isActive: true,
+    words: {
+      some: {
+        translations: {
+          some: {
+            languageCode:
+              session?.user?.targetLanguage || DEFAULT_LANGUAGE_CODE,
+          },
+        },
+      },
+    },
     ...(query
       ? {
           OR: [
             { name: { contains: query, mode: "insensitive" } },
             { slug: { contains: query, mode: "insensitive" } },
+            {
+              words: {
+                some: {
+                  translations: {
+                    some: {
+                      text: { contains: query, mode: "insensitive" },
+                    },
+                  },
+                },
+              },
+            },
           ],
         }
       : {}),
