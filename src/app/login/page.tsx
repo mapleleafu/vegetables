@@ -53,7 +53,7 @@ export default function LoginPage() {
     }
 
     toast.success("Logged in successfully!");
-    router.push("/");
+    window.location.href = "/";
   }
 
   const handleRegister = (event: React.FormEvent) => {

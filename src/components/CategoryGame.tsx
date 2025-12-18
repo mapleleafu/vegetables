@@ -16,6 +16,7 @@ import FlyingReward from "@/components/FlyingReward";
 import { CategoryComplete } from "@/components/CategoryComplete";
 import Screws from "@/components/ui/screws";
 import Shadow from "@/components/ui/shadow";
+import { flyingDuration } from "@/components/FlyingReward";
 
 interface CategoryGameProps {
   words: any[];
@@ -140,6 +141,10 @@ export function CategoryGame({
 
       if (rewardType === "coin") {
         triggerFlyAnimation(selectedWordId, word?.image || null);
+        setTimeout(() => {
+          setCoins((prev) => prev + 1);
+        }, flyingDuration * 1000);
+
         setWordProgress((prev) => {
           return prev.map((w) => {
             if (w.wordId === selectedWordId) {
@@ -176,12 +181,6 @@ export function CategoryGame({
       );
 
       if (result.status === "correct") {
-        setTimeout(() => {
-          if (result.rewardType === "coin" && result.newCoins !== undefined) {
-            setCoins(result.newCoins);
-          }
-        }, 800);
-
         if (result.rewardType === "point" && result.message) {
           toast.info(result.message);
         }

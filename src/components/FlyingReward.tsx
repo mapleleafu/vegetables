@@ -1,8 +1,8 @@
 import { motion } from "framer-motion";
 
-export default function FlyingReward({ start, end }: { start: any; end: any }) {
-  const duration = 0.8;
+export const flyingDuration = 0.8;
 
+export default function FlyingReward({ start, end }: { start: any; end: any }) {
   return (
     <motion.div
       initial={{
@@ -21,7 +21,7 @@ export default function FlyingReward({ start, end }: { start: any; end: any }) {
       }}
       exit={{ opacity: 0, scale: 0.5 }}
       transition={{
-        duration: duration,
+        duration: flyingDuration,
         ease: "easeInOut",
       }}
       className="pointer-events-none flex items-center justify-center rounded-full"
@@ -39,7 +39,7 @@ export default function FlyingReward({ start, end }: { start: any; end: any }) {
               borderRadius: ["8px", "50%", "50%", "50%"],
             }}
             transition={{
-              duration: duration,
+              duration: flyingDuration,
               times: [0, 0.49, 0.5, 1], // Hard cut at 0.5
             }}
           />
@@ -54,7 +54,7 @@ export default function FlyingReward({ start, end }: { start: any; end: any }) {
             scale: [0.5, 0.5, 1, 1],
           }}
           transition={{
-            duration: duration,
+            duration: flyingDuration,
             times: [0, 0.49, 0.5, 1], // Hard cut at 0.5
           }}
         >
