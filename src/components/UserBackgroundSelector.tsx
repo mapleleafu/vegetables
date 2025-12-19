@@ -236,7 +236,7 @@ export function UserBackgroundSelector({
             </div>
           )}
 
-          {initialized && words.length > 0 && hasMore && (
+          {hasMore && (
             <div className="mt-8 flex justify-center">
               <Button
                 onClick={loadMore}

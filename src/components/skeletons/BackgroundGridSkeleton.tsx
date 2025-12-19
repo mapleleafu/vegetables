@@ -14,13 +14,14 @@ export const BackgroundGridSkeleton = ({
       key={`skeleton-${i}`}
       className="relative overflow-hidden rounded-xl border-4 border-transparent"
     >
-      {/* Image area skeleton */}
+      {/* Image area */}
       <div className="bg-secondary/20 aspect-square w-full">
         <Skeleton className="h-full w-full rounded-none" />
       </div>
-      {/* Text area skeleton */}
+
+      {/* Text area */}
       <div className="bg-secondary/50 flex justify-center px-2 py-2">
-        <Skeleton className="h-3 w-16 rounded-full" />
+        <Skeleton className="h-4 w-20 rounded-full" />
       </div>
     </div>
   ));
