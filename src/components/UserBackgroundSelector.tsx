@@ -224,6 +224,10 @@ export function UserBackgroundSelector({
                   </div>
                 </button>
               ))}
+
+              {loading && (
+                <BackgroundGridSkeleton count={pageSize} wrap={false} />
+              )}
             </div>
           ) : (
             <div className="text-muted-foreground flex flex-col items-center justify-center py-12">
@@ -240,7 +244,6 @@ export function UserBackgroundSelector({
                 variant="ghost"
                 className="w-full sm:w-auto"
               >
-                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Load More Words
               </Button>
             </div>
