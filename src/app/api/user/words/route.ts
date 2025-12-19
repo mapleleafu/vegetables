@@ -9,12 +9,22 @@ export const GET = apiHandler(async (req, { params }, user) => {
 
   const skip = page * limit;
 
+  const where = {
+    image: { not: null },
+    isActive: true,
+    category: {
+      categoryProgress: {
+        some: {
+          userId: user.id,
+          isUnlocked: true,
+        },
+      },
+    },
+  };
+
   const [words, total] = await Promise.all([
     prisma.word.findMany({
-      where: {
-        image: { not: null },
-        isActive: true,
-      },
+      where,
       select: {
         id: true,
         name: true,
@@ -24,12 +34,7 @@ export const GET = apiHandler(async (req, { params }, user) => {
       take: limit,
       skip,
     }),
-    prisma.word.count({
-      where: {
-        image: { not: null },
-        isActive: true,
-      },
-    }),
+    prisma.word.count({ where }),
   ]);
 
   return NextResponse.json({

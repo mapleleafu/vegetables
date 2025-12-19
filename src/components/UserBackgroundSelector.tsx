@@ -19,31 +19,10 @@ import { Loader2, Check, Paintbrush, Palette } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BadRequestError } from "@/lib/errors";
 import { Skeleton } from "@/components/ui/skeleton";
+import { GRADIENT_PRESETS, SOLID_PRESETS } from "@/lib/constants";
+import { BackgroundGridSkeleton } from "@/components/skeletons/BackgroundGridSkeleton";
 
 const pageSize = 10;
-
-const GRADIENT_PRESETS = [
-  { name: "Sage (Default)", value: "from-[#DBE7C1] to-[#A9B792]" },
-  { name: "Soft Sky", value: "from-sky-100 to-blue-200" },
-  { name: "Warm Peach", value: "from-orange-100 to-rose-200" },
-  { name: "Lavender", value: "from-purple-100 to-indigo-200" },
-  { name: "Minty Fresh", value: "from-emerald-100 to-teal-200" },
-  { name: "Lemonade", value: "from-yellow-100 to-amber-200" },
-  { name: "Cool Gray", value: "from-slate-200 to-slate-400" },
-  { name: "Midnight", value: "from-indigo-900 to-slate-900" },
-  { name: "Forest", value: "from-green-800 to-emerald-950" },
-];
-
-const SOLID_PRESETS = [
-  { name: "White", value: "#ffffff" },
-  { name: "Light Gray", value: "#f3f4f6" },
-  { name: "Cream", value: "#fffdd0" },
-  { name: "Mint", value: "#ccffcc" },
-  { name: "Sky", value: "#e0f2fe" },
-  { name: "Rose", value: "#ffe4e6" },
-  { name: "Slate", value: "#cbd5e1" },
-  { name: "Black", value: "#1a1a1a" },
-];
 
 const SelectableImageTile = ({
   src,
@@ -59,7 +38,7 @@ const SelectableImageTile = ({
   return (
     <div className="bg-secondary/20 relative aspect-square w-full overflow-hidden">
       {!isLoaded && (
-        <Skeleton className="absolute inset-0 h-full w-full bg-primary/5 animate-pulse rounded-none" />
+        <Skeleton className="bg-primary/5 absolute inset-0 h-full w-full animate-pulse rounded-none" />
       )}
 
       <img
@@ -73,7 +52,7 @@ const SelectableImageTile = ({
       />
 
       {isSelected && (
-        <div className="animate-in fade-in zoom-in absolute inset-0 flex items-center justify-center bg-black/20 duration-200 opacity-60">
+        <div className="animate-in fade-in zoom-in absolute inset-0 flex items-center justify-center bg-black/20 opacity-60 duration-200">
           <div className="bg-primary text-primary-foreground rounded-full p-2 shadow-sm">
             <Check className="h-4 w-4" />
           </div>
@@ -94,6 +73,7 @@ export function UserBackgroundSelector({
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
   const [words, setWords] = useState<Word[]>([]);
   const [loading, setLoading] = useState(false);
+  const [initialized, setInitialized] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(0);
 
@@ -110,22 +90,23 @@ export function UserBackgroundSelector({
 
       try {
         const res = await api.user.userWords(pageNum, pageSize);
-        const words = res.words;
+        const newWords = res.words;
 
-        if (!words) throw new Error("Failed to load words");
+        if (!newWords) throw new Error("Failed to load words");
 
         if (pageNum === 0) {
-          setWords(words);
+          setWords(newWords);
         } else {
-          setWords((prev) => [...prev, ...words]);
+          setWords((prev) => [...prev, ...newWords]);
         }
 
-        setHasMore(words.length === pageSize);
+        setHasMore(newWords.length === pageSize);
       } catch (err) {
         toast.error("Failed to load background options");
         console.error(err);
       } finally {
         setLoading(false);
+        setInitialized(true);
       }
     },
     [loading],
@@ -184,6 +165,7 @@ export function UserBackgroundSelector({
     setWords([]);
     setPage(0);
     setHasMore(true);
+    setInitialized(false);
     setBackgroundSelectorOpen(true);
   };
 
@@ -214,34 +196,43 @@ export function UserBackgroundSelector({
             <DialogTitle>Choose Background Image</DialogTitle>
           </DialogHeader>
 
-          <div className="mt-6 grid grid-cols-3 gap-4 sm:grid-cols-4 md:grid-cols-5">
-            {words.map((word) => (
-              <button
-                key={word.id}
-                onClick={() => setBackgroundWord(word.id)}
-                className={cn(
-                  "group relative overflow-hidden rounded-xl border-4 transition-all duration-200",
-                  currentWordId === word.id
-                    ? "border-primary ring-primary/20 scale-95 shadow-xl ring-4"
-                    : "border-transparent hover:scale-105 hover:border-gray-200",
-                )}
-              >
-                <SelectableImageTile
-                  src={word.image!}
-                  alt={word.name}
-                  isSelected={currentWordId === word.id}
-                />
+          {!initialized || (loading && words.length === 0) ? (
+            <BackgroundGridSkeleton />
+          ) : words.length > 0 ? (
+            <div className="mt-6 grid grid-cols-3 gap-4 sm:grid-cols-4 md:grid-cols-5">
+              {words.map((word) => (
+                <button
+                  key={word.id}
+                  onClick={() => setBackgroundWord(word.id)}
+                  className={cn(
+                    "group relative overflow-hidden rounded-xl border-4 transition-all duration-200",
+                    currentWordId === word.id
+                      ? "border-primary ring-primary/20 scale-95 shadow-xl ring-4"
+                      : "border-transparent hover:scale-105 hover:border-gray-200",
+                  )}
+                >
+                  <SelectableImageTile
+                    src={word.image!}
+                    alt={word.name}
+                    isSelected={currentWordId === word.id}
+                  />
 
-                <div className="bg-secondary/50 px-2 py-2">
-                  <p className="text-foreground truncate text-center text-xs font-semibold capitalize">
-                    {word.name}
-                  </p>
-                </div>
-              </button>
-            ))}
-          </div>
+                  <div className="bg-secondary/50 px-2 py-2">
+                    <p className="text-foreground truncate text-center text-xs font-semibold capitalize">
+                      {word.name}
+                    </p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="text-muted-foreground flex flex-col items-center justify-center py-12">
+              <Paintbrush className="mb-4 h-12 w-12 opacity-20" />
+              <p>No unlocked words with images yet.</p>
+            </div>
+          )}
 
-          {hasMore && (
+          {initialized && words.length > 0 && hasMore && (
             <div className="mt-8 flex justify-center">
               <Button
                 onClick={loadMore}
@@ -252,13 +243,6 @@ export function UserBackgroundSelector({
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Load More Words
               </Button>
-            </div>
-          )}
-
-          {!loading && words.length === 0 && (
-            <div className="text-muted-foreground flex flex-col items-center justify-center py-12">
-              <Paintbrush className="mb-4 h-12 w-12 opacity-20" />
-              <p>No unlocked words with images yet.</p>
             </div>
           )}
         </DialogContent>
