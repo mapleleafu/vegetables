@@ -57,13 +57,16 @@ model Session {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  username      String?   @unique
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  passwordHash  String?
+  id                 String    @id @default(cuid())
+  username           String?   @unique
+  name               String?
+  email              String?   @unique
+  emailVerified      DateTime?
+  image              String?
+  passwordHash       String?
+  backgroundWord     Word?     @relation("UserBackgroundWord", fields: [backgroundWordId], references: [id])
+  backgroundWordId   String?
+  backgroundGradient String?   @default("from-[#DBE7C1] to-[#A9B792]") // Default Sage Green
 
   hasCompletedTutorial Boolean      @default(false)
   coins                Int          @default(0)
@@ -83,6 +86,8 @@ model User {
   categoryProgress CategoryProgress[]
   testSessions     TestSession[]
   coinTransactions CoinTransaction[]
+
+  @@index([backgroundWordId])
 }
 
 model Category {
@@ -125,8 +130,9 @@ model Word {
   favorites    FavoriteWord[]
   testAnswers  TestAnswer[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  backgroundUsers User[]   @relation("UserBackgroundWord")
 
   @@unique([categoryId, slug])
 }

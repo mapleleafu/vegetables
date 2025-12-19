@@ -21,4 +21,15 @@ export const createWordSchema = z.object({
   isActive: z.boolean().default(true),
 });
 
+export const updateGradientSchema = z.object({
+  gradient: z
+    .string()
+    .min(3, "Invalid gradient string")
+    .max(100, "Gradient string too long")
+    .regex(
+      /^[a-zA-Z0-9\s#\-\[\]\:\(\)\,]+$/,
+      "Invalid characters in style definition",
+    ),
+});
+
 export type CreateWordInput = z.infer<typeof createWordSchema>;

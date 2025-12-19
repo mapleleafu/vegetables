@@ -11,10 +11,14 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { PUBLIC_ROUTES, IS_TUTORIAL_ON } from "@/lib/constants";
 import { excalifont } from "@/lib/fonts";
-import { Analytics } from "@vercel/analytics/next"
-import { SpeedInsights } from "@vercel/speed-insights/next"
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { DynamicBackground } from "@/components/DynamicBackground";
+import { BACKGROUND_IMAGE_URL, BACKGROUND_GRADIENT } from "@/lib/constants";
 
 const inter = Inter({ subsets: ["latin"] });
+let backgroundImageUrl = BACKGROUND_IMAGE_URL;
+let backgroundGradient = BACKGROUND_GRADIENT;
 
 export const metadata: Metadata = {
   title: "Gabs ❤️ Atakan",
@@ -68,13 +72,29 @@ export default async function RootLayout({
     ) {
       const user = await prisma.user.findUnique({
         where: { id: session.user.id },
-        select: { hasCompletedTutorial: true, targetLanguage: true },
+        select: {
+          hasCompletedTutorial: true,
+          targetLanguage: true,
+          backgroundWord: {
+            select: {
+              image: true,
+            },
+          },
+          backgroundGradient: true,
+        },
       });
+
+      if (user?.backgroundWord?.image) {
+        backgroundImageUrl = user.backgroundWord.image;
+      }
+
+      if (user?.backgroundGradient) {
+        backgroundGradient = user.backgroundGradient;
+      }
 
       if (user && !user.hasCompletedTutorial && pathname !== "/tutorial") {
         redirect("/tutorial");
       }
-
       if (user && user.hasCompletedTutorial && pathname === "/tutorial") {
         redirect("/");
       }
@@ -90,9 +110,15 @@ export default async function RootLayout({
       <body
         className={`${inter.className} ${excalifont.variable} bg-background text-foreground antialiased`}
       >
-        <div className="fixed inset-0 z-[-1] bg-[url('/static/carrots.png')] bg-contain bg-repeat blur-[2.5px]" />
+        <DynamicBackground
+          imageUrl={backgroundImageUrl}
+          gradient={backgroundGradient}
+        />
+
+        {/* Decorative border overlay */}
         <div className="pointer-events-none fixed inset-0 z-50 border-8 border-black blur-xl" />
 
+        {/* Main content */}
         <div className="font-excali relative z-10 min-h-screen">
           <TooltipProvider>
             <Providers>
@@ -101,6 +127,7 @@ export default async function RootLayout({
             </Providers>
           </TooltipProvider>
         </div>
+
         <Analytics />
         <SpeedInsights />
       </body>

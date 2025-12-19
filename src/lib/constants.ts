@@ -11,4 +11,6 @@ export const GAME_CONFIG = {
 } as const;
 
 export const PUBLIC_ROUTES = ["/login", "/register"];
+export const BACKGROUND_IMAGE_URL = "/static/beetroot.png"; // Default background
+export const BACKGROUND_GRADIENT = "from-[#DBE7C1] to-[#A9B792]"; // Default gradient
 export const IS_TUTORIAL_ON = true;

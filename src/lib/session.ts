@@ -1,7 +1,13 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { LanguageCode, UserRole } from "@prisma/client";
+import { LanguageCode, UserRole, Word } from "@prisma/client";
+
+type BackgroundWordPreview = {
+  id: string;
+  name: string;
+  image: string | null;
+};
 
 export type SafeUser = {
   id: string;
@@ -15,6 +21,9 @@ export type SafeUser = {
   coins: number;
   points: number;
   hasPassword: boolean;
+  backgroundWordId: string | null;
+  backgroundWord: BackgroundWordPreview | null;
+  backgroundGradient: string | null;
 };
 
 export async function getCurrentUserSafe(): Promise<SafeUser | null> {
@@ -26,13 +35,21 @@ export async function getCurrentUserSafe(): Promise<SafeUser | null> {
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
+    include: {
+      backgroundWord: {
+        select: {
+          id: true,
+          name: true,
+          image: true,
+        },
+      },
+    },
   });
 
   if (!user) {
     return null;
   }
 
-  // No use of {...user} because of Prisma extension
   return {
     id: user.id,
     username: user.username,
@@ -45,5 +62,14 @@ export async function getCurrentUserSafe(): Promise<SafeUser | null> {
     coins: user.coins,
     points: user.points,
     hasPassword: user.hasPassword,
+    backgroundWordId: user.backgroundWordId,
+    backgroundWord: user.backgroundWord
+      ? {
+          id: user.backgroundWord.id,
+          name: user.backgroundWord.name,
+          image: user.backgroundWord.image,
+        }
+      : null,
+    backgroundGradient: user.backgroundGradient,
   };
 }

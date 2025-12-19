@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Camera, User as UserIcon, Eye, EyeOff } from "lucide-react";
+import { Camera, User as UserIcon, Eye, EyeOff, Loader2 } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { LANGUAGE_NAMES } from "@/types/language";
 import { Separator } from "@/components/ui/separator";
@@ -30,6 +30,8 @@ import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { authRegex } from "@/lib/validations/auth";
 import { SafeUser } from "@/lib/session";
+import { UserBackgroundSelector } from "@/components/UserBackgroundSelector";
+import { DynamicBackground } from "@/components/DynamicBackground";
 
 interface UserSettingsDialogProps {
   children: React.ReactNode;
@@ -65,33 +67,12 @@ export function UserSettingsDialog({
     }
   };
 
-  const handleCurrentPasswordChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const sanitized = e.target.value.replace(authRegex.password, "");
-    setCurrentPassword(sanitized);
-  };
-
-  const handleNewPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const sanitized = e.target.value.replace(authRegex.password, "");
-    setNewPassword(sanitized);
-  };
-
-  const handleConfirmPasswordChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const sanitized = e.target.value.replace(authRegex.password, "");
-    setConfirmPassword(sanitized);
-  };
-
   const handleProfileUpdate = async () => {
     setIsLoading(true);
     try {
       const formData = new FormData();
       formData.append("targetLanguage", targetLanguage);
-      if (imageFile) {
-        formData.append("image", imageFile);
-      }
+      if (imageFile) formData.append("image", imageFile);
 
       await api.user.updateProfile(formData);
 
@@ -111,14 +92,13 @@ export function UserSettingsDialog({
       return;
     }
     if (!currentPassword || !newPassword) {
-      toast.error("Please fill in all password fields");
+      toast.error("Please fill in all fields");
       return;
     }
 
     setIsLoading(true);
     try {
       await api.user.updatePassword({ currentPassword, newPassword });
-
       toast.success("Password updated successfully");
       setCurrentPassword("");
       setNewPassword("");
@@ -129,6 +109,9 @@ export function UserSettingsDialog({
       setIsLoading(false);
     }
   };
+
+  const sanitizedPassword = (value: string) =>
+    value.replace(authRegex.password, "");
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -147,24 +130,24 @@ export function UserSettingsDialog({
             </TabsList>
           )}
 
-          <TabsContent value="general" className="flex flex-col gap-4 py-2">
+          <TabsContent value="general" className="space-y-6 py-4">
             <div className="flex flex-col items-center gap-4">
               <div className="relative">
-                <Avatar className="border-border h-24 w-24 border-2">
+                <Avatar className="border-background h-32 w-32 border-4 shadow-lg">
                   <AvatarImage
                     src={previewUrl || user?.image || ""}
                     alt={user?.username || "User"}
                     className="object-cover"
                   />
-                  <AvatarFallback className="text-lg">
+                  <AvatarFallback className="text-3xl">
                     {user?.username?.[0]?.toUpperCase() || <UserIcon />}
                   </AvatarFallback>
                 </Avatar>
                 <Label
                   htmlFor="picture"
-                  className="bg-primary text-primary-foreground absolute right-0 bottom-0 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full transition-opacity hover:opacity-90"
+                  className="bg-primary text-primary-foreground absolute right-0 bottom-0 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full shadow-md hover:opacity-90"
                 >
-                  <Camera size={16} />
+                  <Camera size={20} />
                 </Label>
                 <Input
                   id="picture"
@@ -179,11 +162,11 @@ export function UserSettingsDialog({
             <Separator />
 
             <div className="flex w-full flex-row items-center justify-between px-2">
-              <Label htmlFor="language" className="text-sm font-medium">
+              <Label htmlFor="language" className="w-full text-sm font-medium">
                 Target Language
               </Label>
               <Select value={targetLanguage} onValueChange={setTargetLanguage}>
-                <SelectTrigger id="language" className="w-[180px]">
+                <SelectTrigger id="language" className="w-full">
                   <SelectValue placeholder="Select a language" />
                 </SelectTrigger>
                 <SelectContent>
@@ -198,7 +181,42 @@ export function UserSettingsDialog({
 
             <Separator />
 
-            <div className="flex w-full items-center justify-between pt-2">
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Background</Label>
+              <p className="text-muted-foreground text-sm">
+                Personalize your app with a word from your unlocked categories
+              </p>
+
+              <div className="border-muted-foreground/30 bg-muted/20 relative overflow-hidden rounded-xl border-2 border-dashed">
+                <div className="relative aspect-video w-full">
+                  <div className="absolute top-1/2 left-1/2 h-full w-full -translate-x-1/2 -translate-y-1/2 overflow-hidden">
+                    <DynamicBackground
+                      imageUrl={user?.backgroundWord?.image || undefined}
+                      gradient={user?.backgroundGradient || undefined}
+                      tileCount={15}
+                      appyBlur={false}
+                    />
+                  </div>
+
+                  <div className="absolute inset-0 flex flex-col justify-end bg-linear-to-t from-black/60 via-transparent to-transparent p-4">
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="mt-3 w-fit border border-white/30 bg-white/20 text-white backdrop-blur-sm hover:bg-white/30"
+                      asChild
+                    >
+                      <UserBackgroundSelector
+                        currentWordId={user.backgroundWordId}
+                      />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <Separator />
+
+            <div className="flex items-center justify-between">
               <LogoutButton />
               <Button onClick={handleProfileUpdate} disabled={isLoading}>
                 {isLoading && <Spinner />}
@@ -208,88 +226,96 @@ export function UserSettingsDialog({
           </TabsContent>
 
           {user.hasPassword && (
-            <TabsContent value="security" className="space-y-4 py-2">
-              <div className="space-y-2">
-                <Label htmlFor="current-password">Current Password</Label>
-                <div className="relative">
-                  <Input
-                    id="current-password"
-                    className="pr-10"
-                    type={showCurrentPassword ? "text" : "password"}
-                    value={currentPassword}
-                    onChange={handleCurrentPasswordChange}
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setShowCurrentPassword((s) => !s)}
-                    className="absolute top-1/2 right-2 -translate-y-1/2 p-0"
-                  >
-                    {showCurrentPassword ? (
-                      <EyeOff size={16} />
-                    ) : (
-                      <Eye size={16} />
-                    )}
-                  </Button>
+            <TabsContent value="security" className="space-y-6 py-4">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="current-password">Current Password</Label>
+                  <div className="relative">
+                    <Input
+                      id="current-password"
+                      type={showCurrentPassword ? "text" : "password"}
+                      value={currentPassword}
+                      onChange={(e) =>
+                        setCurrentPassword(sanitizedPassword(e.target.value))
+                      }
+                      className="pr-10"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-1/2 right-2 -translate-y-1/2"
+                      onClick={() => setShowCurrentPassword((s) => !s)}
+                    >
+                      {showCurrentPassword ? (
+                        <EyeOff size={16} />
+                      ) : (
+                        <Eye size={16} />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="new-password">New Password</Label>
+                  <div className="relative">
+                    <Input
+                      id="new-password"
+                      type={showNewPassword ? "text" : "password"}
+                      value={newPassword}
+                      onChange={(e) =>
+                        setNewPassword(sanitizedPassword(e.target.value))
+                      }
+                      className="pr-10"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-1/2 right-2 -translate-y-1/2"
+                      onClick={() => setShowNewPassword((s) => !s)}
+                    >
+                      {showNewPassword ? (
+                        <EyeOff size={16} />
+                      ) : (
+                        <Eye size={16} />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="confirm-password">Confirm New Password</Label>
+                  <div className="relative">
+                    <Input
+                      id="confirm-password"
+                      type={showConfirmPassword ? "text" : "password"}
+                      value={confirmPassword}
+                      onChange={(e) =>
+                        setConfirmPassword(sanitizedPassword(e.target.value))
+                      }
+                      className="pr-10"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-1/2 right-2 -translate-y-1/2"
+                      onClick={() => setShowConfirmPassword((s) => !s)}
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff size={16} />
+                      ) : (
+                        <Eye size={16} />
+                      )}
+                    </Button>
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="new-password">New Password</Label>
-                <div className="relative">
-                  <Input
-                    id="new-password"
-                    className="pr-10"
-                    type={showNewPassword ? "text" : "password"}
-                    value={newPassword}
-                    onChange={handleNewPasswordChange}
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setShowNewPassword((s) => !s)}
-                    className="absolute top-1/2 right-2 -translate-y-1/2 p-0"
-                  >
-                    {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </Button>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="confirm-password">Confirm Password</Label>
-                <div className="relative">
-                  <Input
-                    id="confirm-password"
-                    className="pr-10"
-                    type={showConfirmPassword ? "text" : "password"}
-                    value={confirmPassword}
-                    onChange={handleConfirmPasswordChange}
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setShowConfirmPassword((s) => !s)}
-                    className="absolute top-1/2 right-2 -translate-y-1/2 p-0"
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff size={16} />
-                    ) : (
-                      <Eye size={16} />
-                    )}
-                  </Button>
-                </div>
-              </div>
-
-              <div className="flex justify-end pt-2">
-                <Button
-                  variant="default"
-                  onClick={handlePasswordUpdate}
-                  disabled={isLoading}
-                >
-                  {isLoading && <Spinner />}
+              <div className="flex justify-end">
+                <Button onClick={handlePasswordUpdate} disabled={isLoading}>
+                  {isLoading && <Spinner className="mr-2" />}
                   Update Password
                 </Button>
               </div>
