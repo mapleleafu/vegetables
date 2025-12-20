@@ -8,7 +8,7 @@ import { api } from "@/lib/api";
 import { uploadFile } from "@/lib/storage";
 import { toast } from "sonner";
 import { Category, Word } from "@prisma/client";
-import { X, ImagePlus, Plus, Trash } from "lucide-react";
+import { X, ImagePlus, Plus, Trash, UploadCloud } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -66,6 +66,7 @@ export function WordsForm({ initialData, onSuccess }: WordsFormProps) {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState(initialData?.image || "");
   const [loading, setLoading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   const [audioFiles, setAudioFiles] = useState<Record<number, File>>({});
 
@@ -116,19 +117,136 @@ export function WordsForm({ initialData, onSuccess }: WordsFormProps) {
     }
   }, [initialData, form]);
 
+  const processFile = (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      return toast.error("File must be an image");
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      return toast.error("Max file size 5MB");
+    }
+    setImageFile(file);
+    setPreviewUrl(URL.createObjectURL(file));
+    toast.success("Image attached");
+  };
+
+  const handlePaste = (e: ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (const item of items) {
+      if (item.type.startsWith("image/")) {
+        e.preventDefault();
+        const file = item.getAsFile();
+        if (file) processFile(file);
+        return;
+      }
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener("paste", handlePaste);
+    return () => window.removeEventListener("paste", handlePaste);
+  }, []);
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+
+    // Standard Files (OS Drop)
+    if (e.dataTransfer.files?.length > 0) {
+      const file = e.dataTransfer.files[0];
+      return processFile(file);
+    }
+
+    // Try to extract image source from HTML (Best for Browser Drag)
+    // This fixes the "clipartmax" issue where you get the page URL instead of the image
+    const html = e.dataTransfer.getData("text/html");
+    let imageUrl = "";
+
+    if (html) {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, "text/html");
+      const img = doc.querySelector("img");
+      if (img && img.src) {
+        imageUrl = img.src;
+      }
+    }
+
+    // Fallback to URL text (e.g. copying image link directly)
+    if (!imageUrl) {
+      imageUrl =
+        e.dataTransfer.getData("text/uri-list") ||
+        e.dataTransfer.getData("text/plain");
+    }
+
+    if (imageUrl) {
+      // Base64 Data URI (Common in Google Images thumbnails)
+      if (imageUrl.startsWith("data:image")) {
+        try {
+          const res = await fetch(imageUrl);
+          const blob = await res.blob();
+          const file = new File([blob], "dragged-image.png", {
+            type: blob.type,
+          });
+          processFile(file);
+          return;
+        } catch (err) {
+          console.error("Base64 error", err);
+        }
+      }
+
+      // Remote URL -> Send to Proxy
+      try {
+        toast.info("Fetching dropped image...");
+
+        // Use our API proxy to bypass CORS and 403s
+        const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(imageUrl)}`;
+        const response = await fetch(proxyUrl);
+
+        if (!response.ok) {
+          throw new Error("Proxy fetch failed");
+        }
+
+        const blob = await response.blob();
+        if (!blob.type.startsWith("image/")) {
+          // If we still got a webpage, it means even the src was a redirect to a page (rare)
+          // or the proxy failed to get the right content type.
+          return toast.error("Link did not return an image.");
+        }
+
+        const extension = blob.type.split("/")[1] || "png";
+        const fileName = `dropped-image.${extension}`;
+        const file = new File([blob], fileName, { type: blob.type });
+        processFile(file);
+      } catch (err) {
+        console.error("Drop fetch error:", err);
+        toast.error(
+          "Could not fetch image. Try dragging a different version or Copy/Paste.",
+        );
+      }
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) processFile(file);
+  };
+
   function autoSlug(value: string) {
     return value
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)/g, "");
-  }
-
-  function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 5 * 1024 * 1024) return toast.error("Max file size 5MB");
-    setImageFile(file);
-    setPreviewUrl(URL.createObjectURL(file));
   }
 
   const handleAudioRecorded = (index: number, file: File) => {
@@ -355,7 +473,16 @@ export function WordsForm({ initialData, onSuccess }: WordsFormProps) {
 
             <div className="space-y-2">
               <FormLabel>Image</FormLabel>
-              <div className="border-input bg-accent/20 flex items-center gap-4 rounded-md border p-3">
+              <div
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                className={`flex items-center gap-4 rounded-md border p-3 transition-colors ${
+                  isDragging
+                    ? "border-primary bg-primary/10 border-dashed"
+                    : "border-input bg-accent/20"
+                }`}
+              >
                 {previewUrl ? (
                   <div className="border-border relative h-20 w-20 shrink-0 overflow-hidden rounded-md border">
                     <img
@@ -376,15 +503,24 @@ export function WordsForm({ initialData, onSuccess }: WordsFormProps) {
                   </div>
                 ) : (
                   <div className="border-muted-foreground/50 bg-muted/50 flex h-20 w-20 shrink-0 items-center justify-center rounded-md border border-dashed">
-                    <ImagePlus className="text-muted-foreground h-8 w-8" />
+                    {isDragging ? (
+                      <UploadCloud className="text-primary h-8 w-8 animate-bounce" />
+                    ) : (
+                      <ImagePlus className="text-muted-foreground h-8 w-8" />
+                    )}
                   </div>
                 )}
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileSelect}
-                  className="flex-1"
-                />
+                <div className="flex-1 space-y-1">
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileSelect}
+                    className="w-full cursor-pointer"
+                  />
+                  <p className="text-muted-foreground text-xs">
+                    Paste image (Ctrl+V) or Drag & Drop here
+                  </p>
+                </div>
               </div>
             </div>
 
