@@ -3,7 +3,7 @@ import { Separator } from "@/components/ui/separator";
 
 export function MenuActionsSkeleton() {
   return (
-    <div className="flex h-full animate-pulse flex-col gap-2">
+    <div className="flex h-full animate-pulse flex-col gap-2 px-2">
       {/* Navigation Links Area */}
       <div className="flex flex-col gap-1">
         {/* Main menu items*/}
