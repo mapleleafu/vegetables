@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { Word } from "@prisma/client";
-import { Loader2, Check, Paintbrush, Palette } from "lucide-react";
+import { Check, Paintbrush, Palette } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BadRequestError } from "@/lib/errors";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -113,11 +113,10 @@ export function UserBackgroundSelector({
   );
 
   useEffect(() => {
-    if (backgroundSelecterOpen && words.length === 0) {
+    if (backgroundSelecterOpen && !initialized) {
       fetchWords(0);
-      setPage(0);
     }
-  }, [backgroundSelecterOpen, fetchWords, words.length]);
+  }, [backgroundSelecterOpen, fetchWords, initialized]);
 
   const loadMore = () => {
     const nextPage = page + 1;
@@ -232,7 +231,7 @@ export function UserBackgroundSelector({
           ) : (
             <div className="text-muted-foreground flex flex-col items-center justify-center py-12">
               <Paintbrush className="mb-4 h-12 w-12 opacity-20" />
-              <p>No unlocked words with images yet.</p>
+              <p>No unlocked categories yet.</p>
             </div>
           )}
 

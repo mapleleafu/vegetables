@@ -33,7 +33,7 @@ export function CategoriesPageSkeleton() {
     <main className="mx-auto flex min-h-screen max-w-4xl animate-pulse flex-col gap-6 p-4 md:p-8">
       {/* Navigation Breadcrumb Skeleton */}
       <div className="flex items-center gap-2">
-        <Skeleton className="h-4 w-4" />
+        <Skeleton className="h-4 w-10" />
         <Skeleton className="h-4 w-20" />
       </div>
 
