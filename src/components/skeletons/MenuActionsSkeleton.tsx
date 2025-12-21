@@ -7,7 +7,7 @@ export function MenuActionsSkeleton() {
       {/* Navigation Links Area */}
       <div className="flex flex-col gap-1">
         {/* Main menu items*/}
-        {Array.from({ length: 8 }).map((_, i) => (
+        {Array.from({ length: 3 }).map((_, i) => (
           <Skeleton key={i} className="h-9 w-full rounded-md" />
         ))}
 

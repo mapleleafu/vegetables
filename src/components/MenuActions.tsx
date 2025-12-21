@@ -1,7 +1,7 @@
 import AuthActions from "@/components/MenuAuthActions";
 import { ThemeToggle } from "./ThemeToggle";
 import { Separator } from "@/components/ui/separator";
-import { Shield, Home, BookOpen, UserIcon } from "lucide-react";
+import { Shield, Home, BookOpen, UserIcon, Sigma } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { UserSettingsDialog } from "@/components/UserSettingsDialog";
@@ -36,6 +36,12 @@ export default async function MenuActions() {
           </Link>
         </Button>
         <Button asChild variant="ghost" className="justify-start px-2">
+          <Link href="/practice/numbers">
+            <Sigma className="mr-2 h-4 w-4" />
+            Number Practice
+          </Link>
+        </Button>
+        {/* <Button asChild variant="ghost" className="justify-start px-2">
           <Link href="/">
             <BookOpen className="mr-2 h-4 w-4" />
             Focus Practice
@@ -70,7 +76,7 @@ export default async function MenuActions() {
             <BookOpen className="mr-2 h-4 w-4" />
             Notes
           </Link>
-        </Button>
+        </Button> */}
         <Button
           variant="outline"
           className="mt-2 mr-5 ml-5 flex-1 cursor-pointer"
