@@ -12,6 +12,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Volume2, ArrowRight, Loader2, Check, X, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DEFAULT_LANGUAGE_CODE } from "@/types/language";
+import { FormattedNumber } from "@/components/FormattedNumber";
 
 export default function NumberPractice() {
   const { data: session } = useSession();
@@ -41,10 +42,10 @@ export default function NumberPractice() {
   const [result, setResult] = useState<"correct" | "wrong" | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  // Global key listener for typing numbers without focusing input
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
       if (gameState !== "PLAYING") return;
+      if (e.key === "Enter") return;
 
       if (
         document.activeElement === inputRef.current ||
@@ -54,7 +55,9 @@ export default function NumberPractice() {
         return;
       }
 
+      // Only handle numeric keys
       if (/^[0-9]$/.test(e.key)) {
+        e.preventDefault();
         setUserInput((prev) => prev + e.key);
         inputRef.current?.focus();
       }
@@ -106,20 +109,41 @@ export default function NumberPractice() {
     }
   };
 
+  const handleConfirm = () => {
+    if (result === "correct") {
+      generateNumber();
+      return;
+    }
+
+    if (result === "wrong") {
+      handleTryAgain();
+      return;
+    }
+
+    // First submission
+    if (!userInput || targetNumber === null) return;
+
+    const guess = parseInt(userInput.replace(/[^0-9]/g, ""), 10);
+    const isCorrect = guess === targetNumber;
+
+    new Audio(isCorrect ? "/sounds/success.mp3" : "/sounds/error.mp3").play();
+    setResult(isCorrect ? "correct" : "wrong");
+  };
+
+  const handleTryAgain = () => {
+    setUserInput("");
+    setResult(null);
+    inputRef.current?.focus();
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    switch (e.key) {
-      case "Enter":
-        if (result === "correct") generateNumber();
-        else checkAnswer();
-        break;
-      case " ":
-        if (gameState === "PLAYING") {
-          e.preventDefault();
-          if (targetNumber !== null) handlePlayAudio(targetNumber);
-        }
-        break;
-      default:
-        break;
+    if (e.key === "Enter") {
+      handleConfirm();
+    } else if (e.key === " ") {
+      if (gameState === "PLAYING") {
+        e.preventDefault();
+        if (targetNumber !== null) handlePlayAudio(targetNumber);
+      }
     }
   };
 
@@ -207,7 +231,7 @@ export default function NumberPractice() {
                         setCustomRange([1, max]);
                       }}
                     >
-                      1 - {max.toLocaleString()}
+                      1 - <FormattedNumber value={max} />
                     </Button>
                   ))}
                 </div>
@@ -360,7 +384,6 @@ export default function NumberPractice() {
                 value={userInput}
                 onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
-                disabled={result === "correct"}
                 className={cn(
                   "placeholder:text-muted-foreground/10 h-24 border-none bg-transparent text-center text-6xl font-bold tracking-widest shadow-none focus-visible:ring-0",
                   result === "correct" && "text-green-600 dark:text-green-400",
@@ -397,9 +420,7 @@ export default function NumberPractice() {
                     variant="outline"
                     className="flex-1"
                     onClick={() => {
-                      setUserInput("");
-                      setResult(null);
-                      inputRef.current?.focus();
+                      handleTryAgain();
                     }}
                   >
                     Try Again
