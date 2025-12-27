@@ -10,6 +10,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { getCurrentUserSafe } from "@/lib/session";
+import { QuickTestTrigger } from "@/components/QuickTestTrigger";
 
 export default async function MenuActions() {
   const session = await getServerSession(authOptions);
@@ -41,6 +42,7 @@ export default async function MenuActions() {
             Number Practice
           </Link>
         </Button>
+        <QuickTestTrigger />
         {/* <Button asChild variant="ghost" className="justify-start px-2">
           <Link href="/">
             <BookOpen className="mr-2 h-4 w-4" />
@@ -77,12 +79,6 @@ export default async function MenuActions() {
             Notes
           </Link>
         </Button> */}
-        <Button
-          variant="outline"
-          className="mt-2 mr-5 ml-5 flex-1 cursor-pointer"
-        >
-          Quick Test
-        </Button>
       </div>
 
       <Separator className="my-2" />

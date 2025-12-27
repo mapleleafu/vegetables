@@ -3,10 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { WordCard } from "@/components/WordCard";
 import { Button } from "@/components/ui/button";
-import {
-  submitAnswer,
-  startTestSession,
-} from "@/app/actions/game";
+import { submitAnswer, startTestSession } from "@/app/actions/game";
 import { checkWordReward, Status } from "@/lib/gameUtilts";
 import { toast } from "sonner";
 import { Coins } from "@/components/ui/coins";
@@ -19,22 +16,24 @@ import { flyingDuration } from "@/components/FlyingReward";
 
 interface CategoryGameProps {
   words: any[];
-  initialWordsProgress: any[];
+  wordsProgress: any[];
   questionOrder: number[];
   userTargetLanguage: string;
   categoryName: string;
   categoryId: string;
-  initialUserCoins: number;
+  userCoins: number;
+  isQuickTest?: boolean;
 }
 
 export function CategoryGame({
   words,
-  initialWordsProgress,
+  wordsProgress: initialWordsProgress,
   questionOrder,
   userTargetLanguage,
   categoryName,
   categoryId,
-  initialUserCoins,
+  userCoins: initialUserCoins,
+  isQuickTest: initialIsQuickTest = false,
 }: CategoryGameProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedWordId, setSelectedWordId] = useState<string | null>(null);
@@ -43,6 +42,7 @@ export function CategoryGame({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sessionId, setSessionId] = useState<string>("");
   const [wordProgress, setWordProgress] = useState(initialWordsProgress);
+  const [isQuickTest, setIsQuickTest] = useState(initialIsQuickTest);
 
   const [stats, setStats] = useState({ correct: 0, wrong: 0 });
   const [isGameComplete, setIsGameComplete] = useState(false);
@@ -126,6 +126,7 @@ export function CategoryGame({
       const { rewardType, message } = checkWordReward(
         selectedWordProgress,
         word,
+        isQuickTest,
       );
 
       if (rewardType === "coin") {
@@ -151,7 +152,7 @@ export function CategoryGame({
     let activeSessionId = sessionId;
     if (!activeSessionId) {
       try {
-        activeSessionId = await startTestSession(categoryId);
+        activeSessionId = await startTestSession(categoryId, isQuickTest);
         setSessionId(activeSessionId);
       } catch (e) {
         toast.error("Connection failed");
@@ -167,6 +168,7 @@ export function CategoryGame({
       isCorrect,
       currentIndex,
       isLastWord,
+      isQuickTest,
     ).catch(() => {
       toast.error("Failed to save progress");
     });

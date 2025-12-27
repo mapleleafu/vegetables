@@ -13,15 +13,18 @@ const POINTS_PER_CORRECT_WORD = GAME_CONFIG.POINTS_PER_CORRECT_WORD;
 const POINTS_PER_MAXED_WORD = GAME_CONFIG.POINTS_PER_MAXED_WORD;
 const POINTS_PER_GLOBAL_MAX_WORD = GAME_CONFIG.POINTS_PER_GLOBAL_MAX_WORD;
 
-export async function startTestSession(categoryId: string) {
+export async function startTestSession(
+  categoryId: string,
+  isQuickTest: boolean,
+) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) throw new UnauthorizedError();
 
   const newSession = await prisma.testSession.create({
     data: {
       userId: session.user.id,
-      categoryId,
-      mode: TestMode.CATEGORY,
+      categoryId: isQuickTest ? null : categoryId,
+      mode: isQuickTest ? TestMode.QUICK_CATEGORY : TestMode.CATEGORY,
       startedAt: new Date(),
     },
   });
@@ -44,6 +47,7 @@ export async function submitAnswer(
   isCorrect: boolean,
   orderIndex: number,
   isLastWord: boolean,
+  isQuickTest: boolean,
 ): Promise<SubmitResult> {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return { status: "unauthorized" };
@@ -59,14 +63,16 @@ export async function submitAnswer(
       prisma.wordProgress.findUnique({
         where: { userId_wordId: { userId, wordId } },
       }),
-      prisma.categoryProgress.findUnique({
-        where: { userId_categoryId: { userId, categoryId } },
-      }),
+      isQuickTest
+        ? null
+        : prisma.categoryProgress.findUnique({
+            where: { userId_categoryId: { userId, categoryId } },
+          }),
     ]);
 
   if (!word || !user) throw new NotFoundError("Data not found");
 
-  const reward = checkWordReward(existingWordProgress as WordProgress, word);
+  const reward = checkWordReward(existingWordProgress as WordProgress, word, isQuickTest);
   const shouldGiveCoin = isCorrect && reward.rewardType === "coin";
   const shouldGivePoint = isCorrect && reward.rewardType === "point";
   const pointReason = reward?.pointReason;
@@ -86,7 +92,7 @@ export async function submitAnswer(
           },
         }),
       );
-    } else {
+    } else if (!isQuickTest) {
       promises.push(
         tx.categoryProgress.create({
           data: {

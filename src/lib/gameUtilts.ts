@@ -9,7 +9,7 @@ const DEFAULT_MAX_COINS_PER_WORD = GAME_CONFIG.DEFAULT_MAX_COINS_PER_WORD;
 const DEFAULT_MAX_COINS_PER_WORD_PER_CATEGORY =
   GAME_CONFIG.DEFAULT_MAX_COINS_PER_WORD_PER_CATEGORY;
 
-export function checkWordReward(wordProgress: WordProgress, word: Word) {
+export function checkWordReward(wordProgress: WordProgress, word: Word, isQuickTest: boolean = false) {
   const globalWordCap = word.maxCoinsPerUser || DEFAULT_MAX_COINS_PER_WORD;
   const categoryModeCap = DEFAULT_MAX_COINS_PER_WORD_PER_CATEGORY;
 
@@ -24,7 +24,7 @@ export function checkWordReward(wordProgress: WordProgress, word: Word) {
     rewardType = "point";
     message = "Word maxed out! +1 Point";
     pointReason = "globalMax";
-  } else if (isCategoryModeMaxed) {
+  } else if (isCategoryModeMaxed && !isQuickTest) {
     rewardType = "point";
     message = "Category coin limit reached for this word! +1 Point";
     pointReason = "categoryMax";

@@ -1,15 +1,13 @@
 import { prisma } from "@/lib/prisma";
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import { Navigation } from "@/components/Navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { CategoryGame } from "@/components/CategoryGame";
+import { GAME_CONFIG } from "@/lib/constants";
 
-interface Props {
-  params: Promise<{ slug: string }>;
-}
-
+// Fisher-Yates shuffle for unbiased randomization
 function shuffleArray<T>(array: T[]): T[] {
   const newArr = [...array];
   for (let i = newArr.length - 1; i > 0; i--) {
@@ -19,16 +17,9 @@ function shuffleArray<T>(array: T[]): T[] {
   return newArr;
 }
 
-export default async function CategoryPage({ params }: Props) {
+export default async function MixedQuickTestPage() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) redirect("/login");
-
-  const { slug } = await params;
-  const category = await prisma.category.findUnique({
-    where: { slug },
-  });
-
-  if (!category) notFound();
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
@@ -37,34 +28,57 @@ export default async function CategoryPage({ params }: Props) {
 
   if (!user) redirect("/login");
 
+  const unlockedProgress = await prisma.categoryProgress.findMany({
+    where: {
+      userId: session.user.id,
+      isUnlocked: true,
+    },
+    select: { categoryId: true },
+  });
+
+  const unlockedIds = unlockedProgress.map((u) => u.categoryId);
+
+  const validCategories = await prisma.category.findMany({
+    where: {
+      OR: [{ id: { in: unlockedIds } }],
+      isActive: true,
+      isDeleted: false,
+    },
+    select: { id: true },
+  });
+
+  const validCategoryIds = validCategories.map((c) => c.id);
+
   const allWords = await prisma.word.findMany({
     where: {
-      categoryId: category.id,
+      categoryId: { in: validCategoryIds },
       translations: {
         some: { languageCode: user.targetLanguage, audioUrl: { not: null } },
       },
+      isActive: true,
     },
+    take: 60,
     include: { translations: true },
   });
 
-  const wordsProgress = await prisma.wordProgress.findMany({
-    where: { userId: session.user.id, word: { categoryId: category.id } },
-  });
+  const words = shuffleArray(allWords).slice(0, GAME_CONFIG.DEFAULT_GAME_WORD_COUNT);
 
-  // Shuffle words for the Visual Grid
-  const words = shuffleArray(allWords);
-
-  // Shuffle indices for the Question Order
-  // This ensures the first question isn't always the top-left card
   const indices = Array.from({ length: words.length }, (_, i) => i);
   const questionOrder = shuffleArray(indices);
+
+  const wordsProgress = await prisma.wordProgress.findMany({
+    where: {
+      userId: session.user.id,
+      wordId: { in: words.map((w) => w.id) },
+    },
+  });
 
   return (
     <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-4 p-4">
       <Navigation
         items={[
-          { label: "Categories", href: "/categories" },
-          { label: category.name },
+          { label: "Home", href: "/" },
+          { label: "Quick Test" },
         ]}
       />
 
@@ -72,7 +86,7 @@ export default async function CategoryPage({ params }: Props) {
         <Alert>
           <AlertTitle>No words found</AlertTitle>
           <AlertDescription>
-            No words found in this category for your target language.
+            No words found in your unlocked categories. Unlock some categories.
           </AlertDescription>
         </Alert>
       ) : (
@@ -80,10 +94,11 @@ export default async function CategoryPage({ params }: Props) {
           words={words}
           questionOrder={questionOrder}
           userTargetLanguage={user.targetLanguage}
-          categoryName={category.name}
+          categoryName="Quick Test"
           userCoins={user.coins}
-          categoryId={category.id}
+          categoryId="QUICK_TEST"
           wordsProgress={wordsProgress}
+          isQuickTest={true}
         />
       )}
     </main>

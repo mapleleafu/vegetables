@@ -4,6 +4,9 @@ export const GAME_CONFIG = {
   DEFAULT_MAX_COINS_PER_WORD: 10,
   DEFAULT_CATEGORY_COST: 64,
 
+  // Gameplay
+  DEFAULT_GAME_WORD_COUNT: 16,
+
   // Rewards
   POINTS_PER_CORRECT_WORD: 1,
   POINTS_PER_GLOBAL_MAX_WORD: 1, // Points given when word is globally maxed

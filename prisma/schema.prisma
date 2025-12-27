@@ -13,8 +13,8 @@ enum UserRole {
 
 enum TestMode {
   CATEGORY
-  QUICK_NORMAL
-  QUICK_HARD
+  QUICK_CATEGORY
+  QUICK_WORDS
 }
 
 enum CoinReason {
