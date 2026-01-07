@@ -1,36 +1,57 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Language Learning App
+
+A comprehensive interactive platform for learning vocabulary and numbers, featuring native pronunciations and various practice modes. 
+
+> **Note:** This application was originally built for my wife to help her learn. While the system is designed to be language-agnostic, it currently features **Turkish** only.
+
+**Live Website:** [gabsandatakan.com](https://gabsandatakan.com)
+
+![Screenshot](https://gueouuqidyklsnfsyjyz.supabase.co/storage/v1/object/public/assets/images/static/screenshot.png)
+
+## Credits
+
+- **Illustrations**: All vegetable images and artwork were hand-drawn by my wife.
+- **Design**: The website's UI/UX and overall design were created by my wife.
+
+## Features
+
+This application is designed to help users improve their vocabulary through interactive exercises and audible feedback.
+
+### Game Modes
+
+- **Category Practice**: Explore words grouped by topics. Users can listen to the correct pronunciation for each word and practice them individually.
+- **Number Practice**: A dedicated section to master numbers. This mode helps users master numerical values.
+- **Quick Test**: A rapid assessment tool that challenges users with a mix of words from different categories to test their retention and speed.
+
+### Key Functionality
+
+- **Native Pronunciations**: High-quality audio for words to ensure correct learning of intonation and accent.
+- **Progress Tracking**: Track your learning journey and see improvements over time.
+- **Admin Dashboard**: A management interface for adding new categories and words to the system.
+
+## Tech Stack
+
+- **Framework**: Next.js 16 (App Router)
+- **Database**: PostgreSQL with Prisma ORM
+- **Authentication**: NextAuth.js
+- **Styling**: Tailwind CSS & Radix UI
+- **State Management**: Zustand
+- **Animations**: Framer Motion
 
 ## Getting Started
 
-First, run the development server:
+1. **Install dependencies:**
+   ```bash
+   npm install
+   ```
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+2. **Set up environment variables:**
+   Copy `.env.example` to `.env` and configure your database and authentication secrets.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+3. **Run the development server:**
+   ```bash
+   npm run dev
+   ```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+4. **Open the app:**
+   Navigate to [http://localhost:3000](http://localhost:3000).
